@@ -2,27 +2,18 @@ import { LoadFacebookUserApi } from '@/data/contracts/apis'
 import { FacebookAuthenticationService } from '@/data/services'
 import { AuthenticationError } from '@/domain/errors'
 
-type SutTypes = {
-  sut: FacebookAuthenticationService
-  loadFacebookUserApi: LoadFacebookUserApi
-}
-
-const makeSut = (): SutTypes => {
-  const loadFacebookUserApi: LoadFacebookUserApi = {
-    loadUser: jest.fn()
-  }
-  const sut = new FacebookAuthenticationService(loadFacebookUserApi)
-
-  return {
-    sut,
-    loadFacebookUserApi
-  }
-}
-
 describe('FacebookAuthenticationService', () => {
-  it('should call LoadFacebookUserApi with correct params', async () => {
-    const { sut, loadFacebookUserApi } = makeSut()
+  let loadFacebookUserApi: LoadFacebookUserApi
+  let sut: FacebookAuthenticationService
+  beforeEach(() => {
+    loadFacebookUserApi = {
+      loadUser: jest.fn()
+    }
 
+    sut = new FacebookAuthenticationService(loadFacebookUserApi)
+  })
+
+  it('should call LoadFacebookUserApi with correct params', async () => {
     await sut.perform({ token: 'any_token' })
 
     expect(loadFacebookUserApi.loadUser).toHaveBeenCalledWith({ token: 'any_token' })
@@ -30,8 +21,6 @@ describe('FacebookAuthenticationService', () => {
   })
 
   it('should return AuthenticationError when LoadFacebookUserApi returns undefined', async () => {
-    const { sut, loadFacebookUserApi } = makeSut()
-
     const loadUserSpy = jest.spyOn(loadFacebookUserApi, 'loadUser')
     loadUserSpy.mockResolvedValueOnce(undefined)
 
