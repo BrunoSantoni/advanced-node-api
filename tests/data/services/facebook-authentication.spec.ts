@@ -1,27 +1,37 @@
 import { LoadFacebookUserApi } from '@/data/contracts/apis'
-import { LoadUserAccountRepository } from '@/data/contracts/repos'
+import { LoadUserAccountRepository, CreateUserAccountByFacebookRepository } from '@/data/contracts/repos'
 import { FacebookAuthenticationService } from '@/data/services'
 import { AuthenticationError } from '@/domain/errors'
+
+const fakeUserAccount = ({
+  name: 'any_fb_name',
+  email: 'any_fb_email@mail.com',
+  facebookId: 'any_fb_id'
+})
 
 describe('FacebookAuthenticationService', () => {
   let loadFacebookUserApi: LoadFacebookUserApi
   let loadUserAccountRepo: LoadUserAccountRepository
+  let createUserAccountByFacebookRepo: CreateUserAccountByFacebookRepository
   let sut: FacebookAuthenticationService
   const token = 'any_token'
 
   beforeEach(() => {
     loadFacebookUserApi = {
-      loadUser: jest.fn(async () => await Promise.resolve({
-        name: 'any_fb_name',
-        email: 'any_fb_email@mail.com',
-        facebookId: 'any_fb_id'
-      }))
+      loadUser: jest.fn(async () => await Promise.resolve(fakeUserAccount))
     }
     loadUserAccountRepo = {
       load: jest.fn()
     }
+    createUserAccountByFacebookRepo = {
+      createFromFacebook: jest.fn()
+    }
 
-    sut = new FacebookAuthenticationService(loadFacebookUserApi, loadUserAccountRepo)
+    sut = new FacebookAuthenticationService(
+      loadFacebookUserApi,
+      loadUserAccountRepo,
+      createUserAccountByFacebookRepo
+    )
   })
 
   it('should call LoadFacebookUserApi with correct params', async () => {
@@ -46,5 +56,18 @@ describe('FacebookAuthenticationService', () => {
 
     expect(loadSpy).toHaveBeenCalledWith({ email: 'any_fb_email@mail.com' })
     expect(loadSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call CreateUserAccountRepo when LoadUserAccountRepo returns undefined', async () => {
+    const loadSpy = jest.spyOn(loadUserAccountRepo, 'load')
+    loadSpy.mockResolvedValueOnce(undefined)
+
+    const createFromFacebookSpy = jest.spyOn(createUserAccountByFacebookRepo, 'createFromFacebook')
+    createFromFacebookSpy.mockResolvedValueOnce(undefined)
+
+    await sut.perform({ token })
+
+    expect(createFromFacebookSpy).toHaveBeenCalledWith(fakeUserAccount)
+    expect(createFromFacebookSpy).toHaveBeenCalledTimes(1)
   })
 })
