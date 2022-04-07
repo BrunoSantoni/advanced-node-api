@@ -20,7 +20,7 @@ describe('FacebookAuthenticationService', () => {
       loadUser: jest.fn(async () => await Promise.resolve(fakeUserAccount))
     }
     userAccountRepo = {
-      load: jest.fn(),
+      load: jest.fn(async () => await Promise.resolve(undefined)),
       createFromFacebook: jest.fn(),
       updateWithFacebook: jest.fn()
     }
@@ -56,9 +56,6 @@ describe('FacebookAuthenticationService', () => {
   })
 
   it('should call CreateUserAccountByFacebookRepo when LoadUserAccountRepo returns undefined', async () => {
-    const loadSpy = jest.spyOn(userAccountRepo, 'load')
-    loadSpy.mockResolvedValueOnce(undefined)
-
     const createFromFacebookSpy = jest.spyOn(userAccountRepo, 'createFromFacebook')
     createFromFacebookSpy.mockResolvedValueOnce(undefined)
 
@@ -82,6 +79,24 @@ describe('FacebookAuthenticationService', () => {
     expect(updateWithFacebookSpy).toHaveBeenCalledWith({
       id: 'any_id',
       name: 'any_name',
+      facebookId: 'any_fb_id'
+    })
+    expect(updateWithFacebookSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('should update name even when UpdateUserAccountByFacebookRepo is called without name', async () => {
+    const loadSpy = jest.spyOn(userAccountRepo, 'load')
+    loadSpy.mockResolvedValueOnce({
+      id: 'any_id'
+    })
+
+    const updateWithFacebookSpy = jest.spyOn(userAccountRepo, 'updateWithFacebook')
+
+    await sut.perform({ token })
+
+    expect(updateWithFacebookSpy).toHaveBeenCalledWith({
+      id: 'any_id',
+      name: 'any_fb_name',
       facebookId: 'any_fb_id'
     })
     expect(updateWithFacebookSpy).toHaveBeenCalledTimes(1)
