@@ -5,6 +5,8 @@ import { AuthenticationError } from '@/domain/errors'
 describe('FacebookAuthenticationService', () => {
   let loadFacebookUserApi: LoadFacebookUserApi
   let sut: FacebookAuthenticationService
+  const token = 'any_token'
+
   beforeEach(() => {
     loadFacebookUserApi = {
       loadUser: jest.fn()
@@ -14,9 +16,9 @@ describe('FacebookAuthenticationService', () => {
   })
 
   it('should call LoadFacebookUserApi with correct params', async () => {
-    await sut.perform({ token: 'any_token' })
+    await sut.perform({ token })
 
-    expect(loadFacebookUserApi.loadUser).toHaveBeenCalledWith({ token: 'any_token' })
+    expect(loadFacebookUserApi.loadUser).toHaveBeenCalledWith({ token })
     expect(loadFacebookUserApi.loadUser).toHaveBeenCalledTimes(1)
   })
 
@@ -24,7 +26,7 @@ describe('FacebookAuthenticationService', () => {
     const loadUserSpy = jest.spyOn(loadFacebookUserApi, 'loadUser')
     loadUserSpy.mockResolvedValueOnce(undefined)
 
-    const authResult = await sut.perform({ token: 'any_token' })
+    const authResult = await sut.perform({ token })
 
     expect(authResult).toEqual(new AuthenticationError())
   })
