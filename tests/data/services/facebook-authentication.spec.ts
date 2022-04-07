@@ -1,5 +1,5 @@
 import { LoadFacebookUserApi } from '@/data/contracts/apis'
-import { LoadUserAccountRepository, CreateUserAccountByFacebookRepository } from '@/data/contracts/repos'
+import { LoadUserAccountRepository, CreateUserAccountByFacebookRepository, UpdateUserAccountByFacebookRepository } from '@/data/contracts/repos'
 import { FacebookAuthenticationService } from '@/data/services'
 import { AuthenticationError } from '@/domain/errors'
 
@@ -11,7 +11,7 @@ const fakeUserAccount = ({
 
 describe('FacebookAuthenticationService', () => {
   let facebookApi: LoadFacebookUserApi
-  let userAccountRepo: LoadUserAccountRepository & CreateUserAccountByFacebookRepository
+  let userAccountRepo: LoadUserAccountRepository & CreateUserAccountByFacebookRepository & UpdateUserAccountByFacebookRepository
   let sut: FacebookAuthenticationService
   const token = 'any_token'
 
@@ -21,7 +21,8 @@ describe('FacebookAuthenticationService', () => {
     }
     userAccountRepo = {
       load: jest.fn(),
-      createFromFacebook: jest.fn()
+      createFromFacebook: jest.fn(),
+      updateWithFacebook: jest.fn()
     }
 
     sut = new FacebookAuthenticationService(
@@ -54,7 +55,7 @@ describe('FacebookAuthenticationService', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('should call CreateUserAccountRepo when LoadUserAccountRepo returns undefined', async () => {
+  it('should call CreateUserAccountByFacebookRepo when LoadUserAccountRepo returns undefined', async () => {
     const loadSpy = jest.spyOn(userAccountRepo, 'load')
     loadSpy.mockResolvedValueOnce(undefined)
 
@@ -65,5 +66,24 @@ describe('FacebookAuthenticationService', () => {
 
     expect(createFromFacebookSpy).toHaveBeenCalledWith(fakeUserAccount)
     expect(createFromFacebookSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call UpdateUserAccountByFacebookRepo when LoadUserAccountRepo returns data', async () => {
+    const loadSpy = jest.spyOn(userAccountRepo, 'load')
+    loadSpy.mockResolvedValueOnce({
+      id: 'any_id',
+      name: 'any_name'
+    })
+
+    const updateWithFacebookSpy = jest.spyOn(userAccountRepo, 'updateWithFacebook')
+
+    await sut.perform({ token })
+
+    expect(updateWithFacebookSpy).toHaveBeenCalledWith({
+      id: 'any_id',
+      name: 'any_name',
+      facebookId: 'any_fb_id'
+    })
+    expect(updateWithFacebookSpy).toHaveBeenCalledTimes(1)
   })
 })
