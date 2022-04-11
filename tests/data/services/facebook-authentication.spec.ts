@@ -93,4 +93,40 @@ describe('FacebookAuthenticationService', () => {
 
     expect(authResult).toEqual(new AccessToken('any_generated_token'))
   })
+
+  it('should rethrow if TokenGenerator throws', async () => {
+    const generateTokenSpy = jest.spyOn(crypto, 'generateToken')
+    generateTokenSpy.mockRejectedValueOnce(new Error('crypto_error'))
+
+    const promise = sut.perform({ token })
+
+    await expect(promise).rejects.toThrow(new Error('crypto_error'))
+  })
+
+  it('should rethrow if LoadFacebookUserApi throws', async () => {
+    const loadUserSpy = jest.spyOn(facebookApi, 'loadUser')
+    loadUserSpy.mockRejectedValueOnce(new Error('fb_error'))
+
+    const promise = sut.perform({ token })
+
+    await expect(promise).rejects.toThrow(new Error('fb_error'))
+  })
+
+  it('should rethrow if LoadUserAccountRepository throws', async () => {
+    const loadSpy = jest.spyOn(userAccountRepo, 'load')
+    loadSpy.mockRejectedValueOnce(new Error('load_error'))
+
+    const promise = sut.perform({ token })
+
+    await expect(promise).rejects.toThrow(new Error('load_error'))
+  })
+
+  it('should rethrow if SaveUserAccountByFacebookRepository throws', async () => {
+    const saveWithFacebookSpy = jest.spyOn(userAccountRepo, 'saveWithFacebook')
+    saveWithFacebookSpy.mockRejectedValueOnce(new Error('save_error'))
+
+    const promise = sut.perform({ token })
+
+    await expect(promise).rejects.toThrow(new Error('save_error'))
+  })
 })
