@@ -22,7 +22,7 @@ describe('FacebookAuthenticationService', () => {
 
   beforeEach(() => {
     crypto = {
-      generateToken: jest.fn(async () => await Promise.resolve())
+      generateToken: jest.fn(async () => await Promise.resolve('any_generated_token'))
     }
 
     facebookApi = {
@@ -86,5 +86,11 @@ describe('FacebookAuthenticationService', () => {
       expirationInMinutes: AccessToken.expirationInMinutes
     })
     expect(crypto.generateToken).toHaveBeenCalledTimes(1)
+  })
+
+  it('should return an AccessToken on success', async () => {
+    const authResult = await sut.perform({ token })
+
+    expect(authResult).toEqual(new AccessToken('any_generated_token'))
   })
 })
