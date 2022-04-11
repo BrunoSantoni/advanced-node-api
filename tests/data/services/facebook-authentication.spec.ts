@@ -1,7 +1,11 @@
+import { mocked } from 'ts-jest/utils'
 import { LoadFacebookUserApi } from '@/data/contracts/apis'
 import { LoadUserAccountRepository, SaveUserAccountByFacebookRepository } from '@/data/contracts/repos'
 import { FacebookAuthenticationService } from '@/data/services'
 import { AuthenticationError } from '@/domain/errors'
+import { FacebookAccount } from '@/domain/models'
+
+jest.mock('@/domain/models/facebook-account')
 
 const fakeUserAccount = ({
   name: 'any_fb_name',
@@ -54,51 +58,18 @@ describe('FacebookAuthenticationService', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('should create account with facebook data when LoadUserAccountRepo returns undefined', async () => {
+  it('should call SaveFacebookAccountRepository with FacebookAccount', async () => {
+    // Reescrevendo implementação do construtor
+    const FacebookAccountStub = jest.fn().mockImplementation(() => ({
+      ...fakeUserAccount
+    }))
+    mocked(FacebookAccount).mockImplementationOnce(FacebookAccountStub)
+
     const saveWithFacebookSpy = jest.spyOn(userAccountRepo, 'saveWithFacebook')
 
     await sut.perform({ token })
 
     expect(saveWithFacebookSpy).toHaveBeenCalledWith(fakeUserAccount)
-    expect(saveWithFacebookSpy).toHaveBeenCalledTimes(1)
-  })
-
-  it('should call UpdateUserAccountByFacebookRepo when LoadUserAccountRepo returns data', async () => {
-    const loadSpy = jest.spyOn(userAccountRepo, 'load')
-    loadSpy.mockResolvedValueOnce({
-      id: 'any_id',
-      name: 'any_name'
-    })
-
-    const saveWithFacebookSpy = jest.spyOn(userAccountRepo, 'saveWithFacebook')
-
-    await sut.perform({ token })
-
-    expect(saveWithFacebookSpy).toHaveBeenCalledWith({
-      id: 'any_id',
-      name: 'any_name',
-      email: 'any_fb_email@mail.com',
-      facebookId: 'any_fb_id'
-    })
-    expect(saveWithFacebookSpy).toHaveBeenCalledTimes(1)
-  })
-
-  it('should update name even when UpdateUserAccountByFacebookRepo is called without name', async () => {
-    const loadSpy = jest.spyOn(userAccountRepo, 'load')
-    loadSpy.mockResolvedValueOnce({
-      id: 'any_id'
-    })
-
-    const saveWithFacebookSpy = jest.spyOn(userAccountRepo, 'saveWithFacebook')
-
-    await sut.perform({ token })
-
-    expect(saveWithFacebookSpy).toHaveBeenCalledWith({
-      id: 'any_id',
-      name: 'any_fb_name',
-      email: 'any_fb_email@mail.com',
-      facebookId: 'any_fb_id'
-    })
     expect(saveWithFacebookSpy).toHaveBeenCalledTimes(1)
   })
 })

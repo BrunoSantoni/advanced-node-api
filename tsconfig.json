@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "baseUrl": "src",
-    "rootDir": "src",
+    "rootDirs": ["src", "tests"],
     "strict": true,
     "target": "ES2021",
     "sourceMap": true,
