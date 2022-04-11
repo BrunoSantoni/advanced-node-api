@@ -1,6 +1,7 @@
 import { mocked } from 'ts-jest/utils'
 import { LoadFacebookUserApi } from '@/data/contracts/apis'
 import { LoadUserAccountRepository, SaveUserAccountByFacebookRepository } from '@/data/contracts/repos'
+import { TokenGenerator } from '@/data/contracts/crypto'
 import { FacebookAuthenticationService } from '@/data/services'
 import { AuthenticationError } from '@/domain/errors'
 import { FacebookAccount } from '@/domain/models'
@@ -14,21 +15,29 @@ const fakeUserAccount = ({
 })
 
 describe('FacebookAuthenticationService', () => {
+  let crypto: TokenGenerator
   let facebookApi: LoadFacebookUserApi
   let userAccountRepo: LoadUserAccountRepository & SaveUserAccountByFacebookRepository
   let sut: FacebookAuthenticationService
   const token = 'any_token'
 
   beforeEach(() => {
+    crypto = {
+      generateToken: jest.fn(async () => await Promise.resolve())
+    }
+
     facebookApi = {
       loadUser: jest.fn(async () => await Promise.resolve(fakeUserAccount))
     }
     userAccountRepo = {
       load: jest.fn(async () => await Promise.resolve(undefined)),
-      saveWithFacebook: jest.fn()
+      saveWithFacebook: jest.fn(async () => await Promise.resolve(
+        { id: 'any_account_id' }
+      ))
     }
 
     sut = new FacebookAuthenticationService(
+      crypto,
       facebookApi,
       userAccountRepo
     )
@@ -52,10 +61,9 @@ describe('FacebookAuthenticationService', () => {
 
   it('should call LoadUserAccountRepo when LoadFacebookUserApi returns data', async () => {
     await sut.perform({ token })
-    const loadSpy = jest.spyOn(userAccountRepo, 'load')
 
-    expect(loadSpy).toHaveBeenCalledWith({ email: 'any_fb_email@mail.com' })
-    expect(loadSpy).toHaveBeenCalledTimes(1)
+    expect(userAccountRepo.load).toHaveBeenCalledWith({ email: 'any_fb_email@mail.com' })
+    expect(userAccountRepo.load).toHaveBeenCalledTimes(1)
   })
 
   it('should call SaveFacebookAccountRepository with FacebookAccount', async () => {
@@ -65,11 +73,16 @@ describe('FacebookAuthenticationService', () => {
     }))
     mocked(FacebookAccount).mockImplementationOnce(FacebookAccountStub)
 
-    const saveWithFacebookSpy = jest.spyOn(userAccountRepo, 'saveWithFacebook')
-
     await sut.perform({ token })
 
-    expect(saveWithFacebookSpy).toHaveBeenCalledWith(fakeUserAccount)
-    expect(saveWithFacebookSpy).toHaveBeenCalledTimes(1)
+    expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledWith(fakeUserAccount)
+    expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call TokenGenerator with correct params', async () => {
+    await sut.perform({ token })
+
+    expect(crypto.generateToken).toHaveBeenCalledWith({ key: 'any_account_id' })
+    expect(crypto.generateToken).toHaveBeenCalledTimes(1)
   })
 })

@@ -21,7 +21,9 @@ export namespace SaveUserAccountByFacebookRepository {
     facebookId: string
   }
 
-  export type Result = undefined
+  export type Result = {
+    id: string
+  }
 }
 
 export interface SaveUserAccountByFacebookRepository {
