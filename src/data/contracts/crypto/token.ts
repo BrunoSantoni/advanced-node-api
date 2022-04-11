@@ -1,6 +1,7 @@
 export namespace TokenGenerator {
   export type Params = {
     key: string
+    expirationInMinutes: number
   }
 }
 
