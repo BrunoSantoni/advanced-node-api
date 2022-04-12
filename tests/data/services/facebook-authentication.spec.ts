@@ -18,9 +18,10 @@ describe('FacebookAuthenticationService', () => {
   let facebookApi: LoadFacebookUserApi
   let userAccountRepo: LoadUserAccountRepository & SaveUserAccountByFacebookRepository
   let sut: FacebookAuthenticationService
-  const token = 'any_token'
+  let token: string
 
-  beforeEach(() => {
+  beforeAll(() => {
+    token = 'any_token'
     crypto = {
       generateToken: jest.fn(async () => await Promise.resolve('any_generated_token'))
     }
@@ -34,6 +35,10 @@ describe('FacebookAuthenticationService', () => {
         { id: 'any_account_id' }
       ))
     }
+  })
+
+  beforeEach(() => {
+    jest.clearAllMocks()
 
     sut = new FacebookAuthenticationService(
       crypto,
