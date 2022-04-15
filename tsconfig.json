@@ -10,11 +10,13 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "esModuleInterop": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
     "paths": {
       "@/*": ["*"],
       "@/tests/*": ["../tests/*"]
-    },
-    "forceConsistentCasingInFileNames": true
+    }    
   },
   "include": ["src", "tests"]
 }
