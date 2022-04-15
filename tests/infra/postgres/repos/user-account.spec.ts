@@ -73,6 +73,31 @@ describe('PgUserAccountRepository', () => {
       expect(account).toEqual({
         id: '1'
       })
+
+      await connection.close()
+    })
+
+    it('should return undefined if email does not exists', async () => {
+      const db = newDb()
+      db.public.registerFunction({
+        implementation: () => 'test',
+        name: 'current_database'
+      })
+
+      const connection = await db.adapters.createTypeormConnection({
+        type: 'postgres',
+        entities: [PgUser]
+      })
+      await connection.synchronize()
+
+      const sut = new PgUserAccountRepository()
+
+      const account = await sut.load({
+        email: 'new_email@mail.com'
+      })
+
+      expect(account).toEqual(undefined)
+      await connection.close()
     })
   })
 })
