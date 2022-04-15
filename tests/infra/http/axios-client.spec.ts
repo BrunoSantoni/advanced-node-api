@@ -1,17 +1,7 @@
 import axios from 'axios'
-import { HttpGetClient } from '@/infra/http'
+import { AxiosHttpClient } from '@/infra/http'
 
 jest.mock('axios')
-
-class AxiosHttpClient {
-  async get <T = any> (args: HttpGetClient.Params): Promise<T> {
-    const result = await axios.get(args.url, {
-      params: args.params
-    })
-
-    return result.data
-  }
-}
 
 // Para uma classe que implementa várias interfaces, ter um describe para cada.
 describe('AxiosHttpClient', () => {
