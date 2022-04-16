@@ -13,27 +13,49 @@ class FacebookLoginController {
   ) {}
 
   async handle (httpRequest: any): Promise<HttpResponse> {
-    if (httpRequest.token === '' || httpRequest.token === null || httpRequest.token === undefined) {
-      return {
-        statusCode: 400,
-        data: new Error('The field token is required')
+    try {
+      if (httpRequest.token === '' || httpRequest.token === null || httpRequest.token === undefined) {
+        return {
+          statusCode: 400,
+          data: new Error('The field token is required')
+        }
       }
-    }
-    const result = await this.facebookAuth.perform({ token: httpRequest.token })
+      const result = await this.facebookAuth.perform({ token: httpRequest.token })
 
-    if (result instanceof Error) {
-      return {
-        statusCode: 401,
-        data: result
+      if (result instanceof Error) {
+        return {
+          statusCode: 401,
+          data: result
+        }
       }
-    }
 
-    return {
-      statusCode: 200,
-      data: {
-        accessToken: result.value
+      return {
+        statusCode: 200,
+        data: {
+          accessToken: result.value
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        return {
+          statusCode: 500,
+          data: new ServerError(error)
+        }
+      }
+
+      return {
+        statusCode: 500,
+        data: new ServerError()
       }
     }
+  }
+}
+
+class ServerError extends Error {
+  constructor (error?: Error) {
+    super('Internal Server Error, try again')
+    this.name = 'ServerError'
+    this.stack = error?.stack
   }
 }
 
@@ -108,6 +130,18 @@ describe('FacebookLoginController', () => {
       data: {
         accessToken: 'any_value'
       }
+    })
+  })
+
+  it('should return 500 if authentication throws', async () => {
+    const error = new Error('infra_error')
+    jest.spyOn(facebookAuth, 'perform').mockRejectedValueOnce(error)
+
+    const httpResponse = await sut.handle({ token: 'any_token' })
+
+    expect(httpResponse).toEqual({
+      statusCode: 500,
+      data: new ServerError(error)
     })
   })
 })
