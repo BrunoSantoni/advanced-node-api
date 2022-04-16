@@ -1,47 +1,22 @@
-import { IBackup, newDb } from 'pg-mem'
-import { LoadUserAccountRepository } from '@/data/contracts/repos'
-import { Column, Entity, getRepository, Repository, PrimaryGeneratedColumn, getConnection } from 'typeorm'
+import { IBackup, IMemoryDb, newDb } from 'pg-mem'
+import { getRepository, Repository, getConnection } from 'typeorm'
+import { PgUser } from '@/infra/postgres/entities'
+import { PgUserAccountRepository } from '@/infra/postgres/repos'
 
-class PgUserAccountRepository implements LoadUserAccountRepository {
-  async load (params: LoadUserAccountRepository.Params): Promise<LoadUserAccountRepository.Result> {
-    const pgUserRepo = getRepository(PgUser)
+const makeFakePostgresDb = async (entities?: any[]): Promise<IMemoryDb> => {
+  const db = newDb()
+  db.public.registerFunction({
+    implementation: () => 'test',
+    name: 'current_database'
+  })
 
-    const pgUser = await pgUserRepo.findOne({
-      where: {
-        email: params.email
-      }
-    })
+  const connection = await db.adapters.createTypeormConnection({
+    type: 'postgres',
+    entities: entities ?? ['src/infra/postgres/entities/index.ts']
+  })
+  await connection.synchronize()
 
-    if (pgUser === null) {
-      return undefined
-    }
-
-    const userInfo = {
-      id: pgUser.id.toString(),
-      name: pgUser.name
-    }
-
-    if (pgUser.name === null) {
-      delete userInfo.name
-    }
-
-    return userInfo
-  }
-}
-
-@Entity({ name: 'usuarios' })
-class PgUser {
-  @PrimaryGeneratedColumn()
-  id!: number
-
-  @Column({ name: 'nome', nullable: true })
-  name?: string
-
-  @Column()
-  email!: string
-
-  @Column({ name: 'id_facebook', nullable: true })
-  facebookId?: string
+  return db
 }
 
 describe('PgUserAccountRepository', () => {
@@ -51,17 +26,7 @@ describe('PgUserAccountRepository', () => {
     let dbBackup: IBackup
 
     beforeAll(async () => {
-      const db = newDb()
-      db.public.registerFunction({
-        implementation: () => 'test',
-        name: 'current_database'
-      })
-
-      const connection = await db.adapters.createTypeormConnection({
-        type: 'postgres',
-        entities: [PgUser]
-      })
-      await connection.synchronize()
+      const db = await makeFakePostgresDb([PgUser])
       dbBackup = db.backup() // Salvando backup do banco vazio para limpar entre os testes
 
       pgUserRepo = getRepository(PgUser)
