@@ -5,27 +5,27 @@ import { PgUserAccountRepository } from '@/infra/postgres/repos'
 import { makeFakePostgresDb } from '@/tests/infra/postgres/mocks'
 
 describe('PgUserAccountRepository', () => {
+  let sut: PgUserAccountRepository
+  let pgUserRepo: Repository<PgUser>
+  let dbBackup: IBackup
+
+  beforeAll(async () => {
+    const db = await makeFakePostgresDb([PgUser])
+    dbBackup = db.backup() // Salvando backup do banco vazio para limpar entre os testes
+
+    pgUserRepo = getRepository(PgUser)
+  })
+
+  beforeEach(async () => {
+    dbBackup.restore() // Restaurando o backup gerado do banco vazio
+    sut = new PgUserAccountRepository()
+  })
+
+  afterAll(async () => {
+    await getConnection().close()
+  })
+
   describe('load', () => {
-    let sut: PgUserAccountRepository
-    let pgUserRepo: Repository<PgUser>
-    let dbBackup: IBackup
-
-    beforeAll(async () => {
-      const db = await makeFakePostgresDb([PgUser])
-      dbBackup = db.backup() // Salvando backup do banco vazio para limpar entre os testes
-
-      pgUserRepo = getRepository(PgUser)
-    })
-
-    beforeEach(async () => {
-      dbBackup.restore() // Restaurando o backup gerado do banco vazio
-      sut = new PgUserAccountRepository()
-    })
-
-    afterAll(async () => {
-      await getConnection().close()
-    })
-
     it('should return an account if email exists', async () => {
       await pgUserRepo.save({
         email: 'existing_email@mail.com'
