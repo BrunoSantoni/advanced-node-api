@@ -2,13 +2,18 @@ import { getRepository } from 'typeorm'
 import { LoadUserAccountRepository, SaveUserAccountByFacebookRepository } from '@/data/contracts/repos'
 import { PgUser } from '@/infra/postgres/entities'
 
+// Criando tipos internos para diminuir o código digitado nos tipos devido ao namespace
+type LoadParams = LoadUserAccountRepository.Params
+type LoadResult = LoadUserAccountRepository.Result
+type SaveByFacebookParams = SaveUserAccountByFacebookRepository.Params
+type SaveByFacebookResult = SaveUserAccountByFacebookRepository.Result
+
 export class PgUserAccountRepository implements
 LoadUserAccountRepository,
 SaveUserAccountByFacebookRepository {
-  async load (params: LoadUserAccountRepository.Params): Promise<LoadUserAccountRepository.Result> {
-    const pgUserRepo = getRepository(PgUser)
-
-    const pgUser = await pgUserRepo.findOne({
+  private readonly pgUserRepo = getRepository(PgUser)
+  async load (params: LoadParams): Promise<LoadResult> {
+    const pgUser = await this.pgUserRepo.findOne({
       where: {
         email: params.email
       }
@@ -30,11 +35,9 @@ SaveUserAccountByFacebookRepository {
     return userInfo
   }
 
-  async saveWithFacebook (params: SaveUserAccountByFacebookRepository.Params): Promise<SaveUserAccountByFacebookRepository.Result> {
-    const pgUserRepo = getRepository(PgUser)
-
+  async saveWithFacebook (params: SaveByFacebookParams): Promise<SaveByFacebookResult> {
     if (params.id !== undefined) {
-      await pgUserRepo.update({
+      await this.pgUserRepo.update({
         id: parseInt(params.id)
       }, {
         name: params.name,
@@ -46,7 +49,7 @@ SaveUserAccountByFacebookRepository {
       }
     }
 
-    const createdUser = await pgUserRepo.save({
+    const createdUser = await this.pgUserRepo.save({
       name: params.name,
       email: params.email,
       facebookId: params.facebookId
