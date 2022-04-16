@@ -1,6 +1,6 @@
 import { FacebookAuthentication } from '@/domain/features'
-import { HttpResponse, badRequest, unauthorized } from '@/application/helpers'
-import { ServerError, RequiredFieldError } from '@/application/errors'
+import { HttpResponse, badRequest, unauthorized, serverError } from '@/application/helpers'
+import { RequiredFieldError } from '@/application/errors'
 
 export class FacebookLoginController {
   constructor (
@@ -25,17 +25,8 @@ export class FacebookLoginController {
         }
       }
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          statusCode: 500,
-          data: new ServerError(error)
-        }
-      }
-
-      return {
-        statusCode: 500,
-        data: new ServerError()
-      }
+      const parsedError = error as Error
+      return serverError(parsedError)
     }
   }
 }
