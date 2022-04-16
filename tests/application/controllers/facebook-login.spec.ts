@@ -1,8 +1,7 @@
-import { AuthenticationError } from '@/domain/errors'
 import { FacebookAuthentication } from '@/domain/features'
 import { AccessToken } from '@/domain/models'
 import { FacebookLoginController } from '@/application/controllers'
-import { ServerError, RequiredFieldError } from '@/application/errors'
+import { ServerError, RequiredFieldError, UnauthorizedError } from '@/application/errors'
 
 describe('FacebookLoginController', () => {
   let sut: FacebookLoginController
@@ -57,13 +56,13 @@ describe('FacebookLoginController', () => {
   })
 
   it('should return 401 if authentication fails', async () => {
-    jest.spyOn(facebookAuth, 'perform').mockResolvedValueOnce(new AuthenticationError())
+    jest.spyOn(facebookAuth, 'perform').mockResolvedValueOnce(new UnauthorizedError())
 
     const httpResponse = await sut.handle({ token: 'any_token' })
 
     expect(httpResponse).toEqual({
       statusCode: 401,
-      data: new AuthenticationError()
+      data: new UnauthorizedError()
     })
   })
 
