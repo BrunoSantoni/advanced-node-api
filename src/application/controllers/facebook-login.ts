@@ -1,5 +1,5 @@
 import { FacebookAuthentication } from '@/domain/features'
-import { HttpResponse, badRequest, unauthorized, serverError } from '@/application/helpers'
+import { HttpResponse, badRequest, unauthorized, serverError, success } from '@/application/helpers'
 import { RequiredFieldError } from '@/application/errors'
 
 export class FacebookLoginController {
@@ -18,12 +18,9 @@ export class FacebookLoginController {
         return unauthorized()
       }
 
-      return {
-        statusCode: 200,
-        data: {
-          accessToken: result.value
-        }
-      }
+      return success({
+        accessToken: result.value
+      })
     } catch (error) {
       const parsedError = error as Error
       return serverError(parsedError)
