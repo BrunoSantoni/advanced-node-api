@@ -1,6 +1,6 @@
-import { newDb } from 'pg-mem'
+import { IBackup, newDb } from 'pg-mem'
 import { LoadUserAccountRepository } from '@/data/contracts/repos'
-import { Column, Entity, getRepository, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, getRepository, Repository, PrimaryGeneratedColumn, getConnection } from 'typeorm'
 
 class PgUserAccountRepository implements LoadUserAccountRepository {
   async load (params: LoadUserAccountRepository.Params): Promise<LoadUserAccountRepository.Result> {
@@ -46,7 +46,11 @@ class PgUser {
 
 describe('PgUserAccountRepository', () => {
   describe('load', () => {
-    it('should return an account if email exists', async () => {
+    let sut: PgUserAccountRepository
+    let pgUserRepo: Repository<PgUser>
+    let dbBackup: IBackup
+
+    beforeAll(async () => {
       const db = newDb()
       db.public.registerFunction({
         implementation: () => 'test',
@@ -58,13 +62,24 @@ describe('PgUserAccountRepository', () => {
         entities: [PgUser]
       })
       await connection.synchronize()
+      dbBackup = db.backup() // Salvando backup do banco vazio para limpar entre os testes
 
-      const pgUserRepo = getRepository(PgUser)
+      pgUserRepo = getRepository(PgUser)
+    })
+
+    beforeEach(async () => {
+      dbBackup.restore() // Restaurando o backup gerado do banco vazio
+      sut = new PgUserAccountRepository()
+    })
+
+    afterAll(async () => {
+      await getConnection().close()
+    })
+
+    it('should return an account if email exists', async () => {
       await pgUserRepo.save({
         email: 'existing_email@mail.com'
       })
-
-      const sut = new PgUserAccountRepository()
 
       const account = await sut.load({
         email: 'existing_email@mail.com'
@@ -73,31 +88,14 @@ describe('PgUserAccountRepository', () => {
       expect(account).toEqual({
         id: '1'
       })
-
-      await connection.close()
     })
 
     it('should return undefined if email does not exists', async () => {
-      const db = newDb()
-      db.public.registerFunction({
-        implementation: () => 'test',
-        name: 'current_database'
-      })
-
-      const connection = await db.adapters.createTypeormConnection({
-        type: 'postgres',
-        entities: [PgUser]
-      })
-      await connection.synchronize()
-
-      const sut = new PgUserAccountRepository()
-
       const account = await sut.load({
         email: 'new_email@mail.com'
       })
 
       expect(account).toEqual(undefined)
-      await connection.close()
     })
   })
 })
