@@ -13,19 +13,28 @@ class ValidationComposite {
 }
 
 describe('ValidationComposite', () => {
+  let sut: ValidationComposite
+  let firstValidator: Validator
+  let secondValidator: Validator
+  let validators: Validator[]
+
+  beforeAll(() => {
+    firstValidator = {
+      validate: jest.fn().mockReturnValue(undefined)
+    }
+
+    secondValidator = {
+      validate: jest.fn().mockReturnValue(undefined)
+    }
+
+    validators = [firstValidator, secondValidator]
+  })
+
+  beforeEach(() => {
+    sut = new ValidationComposite(validators)
+  })
+
   it('should return undefined if all Validators return undefined', () => {
-    const firstValidator: Validator = {
-      validate: jest.fn().mockReturnValue(undefined)
-    }
-
-    const secondValidator: Validator = {
-      validate: jest.fn().mockReturnValue(undefined)
-    }
-
-    const validators = [firstValidator, secondValidator]
-
-    const sut = new ValidationComposite(validators)
-
     const error = sut.validate()
 
     expect(error).toBeUndefined()
