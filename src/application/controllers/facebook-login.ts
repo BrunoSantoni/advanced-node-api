@@ -1,6 +1,6 @@
 import { FacebookAuthentication } from '@/domain/features'
 import { HttpResponse, badRequest, unauthorized, serverError, success } from '@/application/helpers'
-import { RequiredStringValidator, ValidationComposite } from '@/application/validations'
+import { ValidationComposite, ValidationBuilder } from '@/application/validations'
 
 type HttpRequest = {
   // O token pode ser null ou undefined, mas se colocarmos no tipo aqui, o compilador vai reclamar lá embaixo
@@ -41,9 +41,9 @@ export class FacebookLoginController {
   }
 
   private validate (httpRequest: HttpRequest): Error | undefined {
-    const requiredFieldValidator = new RequiredStringValidator(httpRequest.token, 'token')
+    const validators = ValidationBuilder.of({ value: httpRequest.token, fieldName: 'token' }).required().build()
 
-    const validator = new ValidationComposite([requiredFieldValidator])
+    const validator = new ValidationComposite(validators)
 
     return validator.validate()
   }
