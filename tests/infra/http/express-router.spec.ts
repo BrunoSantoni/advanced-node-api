@@ -24,16 +24,27 @@ class ExpressRouter {
 }
 
 describe('ExpressRouter', () => {
-  it('should call handle with correct request', async () => {
-    const req = getMockReq({
+  let sut: ExpressRouter
+  let controller: BaseController
+
+  let req: Request
+  let res: Response
+
+  beforeEach(() => {
+    req = getMockReq({
       body: {
         any: 'value'
       }
     })
-    const { res } = getMockRes()
-    const controller = new ControllerSpy()
+
+    res = getMockRes().res
+
+    controller = new ControllerSpy()
+    sut = new ExpressRouter(controller)
+  })
+
+  it('should call handle with correct request', async () => {
     const handleSpy = jest.spyOn(controller, 'handle')
-    const sut = new ExpressRouter(controller)
 
     await sut.adapt(req, res)
 
@@ -45,10 +56,7 @@ describe('ExpressRouter', () => {
 
   it('should call handle with empty request', async () => {
     const req = getMockReq()
-    const { res } = getMockRes()
-    const controller = new ControllerSpy()
     const handleSpy = jest.spyOn(controller, 'handle')
-    const sut = new ExpressRouter(controller)
 
     await sut.adapt(req, res)
 
