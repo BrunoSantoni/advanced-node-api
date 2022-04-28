@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { getMockReq, getMockRes } from '@jest-mock/express'
 import { BaseController } from '@/application/controllers'
+import { ExpressRouter } from '@/infra/http'
 
 class ControllerSpy extends BaseController {
   result = {
@@ -12,22 +13,6 @@ class ControllerSpy extends BaseController {
 
   async perform (httpRequest: any): Promise<any> {
     return this.result
-  }
-}
-
-class ExpressRouter {
-  constructor (
-    private readonly controller: BaseController
-  ) {}
-
-  async adapt (req: Request, res: Response): Promise<void> {
-    const httpResponse = await this.controller.handle({ ...req.body })
-
-    if (httpResponse.statusCode !== 200) {
-      res.status(httpResponse.statusCode).json({ error: httpResponse.data.message })
-    } else {
-      res.status(httpResponse.statusCode).json(httpResponse.data)
-    }
   }
 }
 
