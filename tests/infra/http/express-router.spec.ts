@@ -42,4 +42,17 @@ describe('ExpressRouter', () => {
       any: 'value'
     })
   })
+
+  it('should call handle with empty request', async () => {
+    const req = getMockReq()
+    const { res } = getMockRes()
+    const controller = new ControllerSpy()
+    const handleSpy = jest.spyOn(controller, 'handle')
+    const sut = new ExpressRouter(controller)
+
+    await sut.adapt(req, res)
+
+    // Por enquanto só se preocupa com o body
+    expect(handleSpy).toHaveBeenCalledWith({})
+  })
 })
