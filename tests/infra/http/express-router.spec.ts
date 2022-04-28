@@ -1,7 +1,7 @@
-import { Request, Response } from 'express'
+import { NextFunction, Request, RequestHandler, Response } from 'express'
 import { getMockReq, getMockRes } from '@jest-mock/express'
 import { BaseController } from '@/application/controllers'
-import { ExpressRouter } from '@/infra/http'
+import { adaptExpressRoute } from '@/infra/http'
 
 class ControllerSpy extends BaseController {
   result = {
@@ -17,11 +17,12 @@ class ControllerSpy extends BaseController {
 }
 
 describe('ExpressRouter', () => {
-  let sut: ExpressRouter
+  let sut: RequestHandler
   let controller: BaseController
 
   let req: Request
   let res: Response
+  let next: NextFunction
 
   beforeEach(() => {
     req = getMockReq({
@@ -29,17 +30,17 @@ describe('ExpressRouter', () => {
         any: 'value'
       }
     })
-
     res = getMockRes().res
+    next = getMockRes().next
 
     controller = new ControllerSpy()
-    sut = new ExpressRouter(controller)
+    sut = adaptExpressRoute(controller)
   })
 
   it('should call handle with correct request', async () => {
     const handleSpy = jest.spyOn(controller, 'handle')
 
-    await sut.adapt(req, res)
+    await sut(req, res, next)
 
     // Por enquanto só se preocupa com o body
     expect(handleSpy).toHaveBeenCalledWith({
@@ -52,7 +53,7 @@ describe('ExpressRouter', () => {
     const req = getMockReq()
     const handleSpy = jest.spyOn(controller, 'handle')
 
-    await sut.adapt(req, res)
+    await sut(req, res, next)
 
     // Por enquanto só se preocupa com o body
     expect(handleSpy).toHaveBeenCalledWith({})
@@ -60,7 +61,7 @@ describe('ExpressRouter', () => {
   })
 
   it('should return with 200 and valid data', async () => {
-    await sut.adapt(req, res)
+    await sut(req, res, next)
 
     // Por enquanto só se preocupa com o body
     expect(res.status).toHaveBeenCalledWith(200)
@@ -76,7 +77,7 @@ describe('ExpressRouter', () => {
       statusCode: 400,
       data: new Error('any_error')
     })
-    await sut.adapt(req, res)
+    await sut(req, res, next)
 
     // Por enquanto só se preocupa com o body
     expect(res.status).toHaveBeenCalledWith(400)
@@ -92,7 +93,7 @@ describe('ExpressRouter', () => {
       statusCode: 500,
       data: new Error('any_error')
     })
-    await sut.adapt(req, res)
+    await sut(req, res, next)
 
     // Por enquanto só se preocupa com o body
     expect(res.status).toHaveBeenCalledWith(500)
