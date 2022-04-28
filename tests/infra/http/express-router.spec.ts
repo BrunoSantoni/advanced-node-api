@@ -23,7 +23,11 @@ class ExpressRouter {
   async adapt (req: Request, res: Response): Promise<void> {
     const httpResponse = await this.controller.handle({ ...req.body })
 
-    res.status(200).json(httpResponse.data)
+    if (httpResponse.statusCode !== 200) {
+      res.status(httpResponse.statusCode).json({ error: httpResponse.data.message })
+    } else {
+      res.status(httpResponse.statusCode).json(httpResponse.data)
+    }
   }
 }
 
@@ -78,6 +82,38 @@ describe('ExpressRouter', () => {
     expect(res.status).toHaveBeenCalledTimes(1)
     expect(res.json).toHaveBeenCalledWith({
       any: 'response'
+    })
+    expect(res.json).toHaveBeenCalledTimes(1)
+  })
+
+  it('should return with 400 and valid error', async () => {
+    jest.spyOn(controller, 'handle').mockResolvedValueOnce({
+      statusCode: 400,
+      data: new Error('any_error')
+    })
+    await sut.adapt(req, res)
+
+    // Por enquanto só se preocupa com o body
+    expect(res.status).toHaveBeenCalledWith(400)
+    expect(res.status).toHaveBeenCalledTimes(1)
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'any_error'
+    })
+    expect(res.json).toHaveBeenCalledTimes(1)
+  })
+
+  it('should return with 500 and valid error', async () => {
+    jest.spyOn(controller, 'handle').mockResolvedValueOnce({
+      statusCode: 500,
+      data: new Error('any_error')
+    })
+    await sut.adapt(req, res)
+
+    // Por enquanto só se preocupa com o body
+    expect(res.status).toHaveBeenCalledWith(500)
+    expect(res.status).toHaveBeenCalledTimes(1)
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'any_error'
     })
     expect(res.json).toHaveBeenCalledTimes(1)
   })
