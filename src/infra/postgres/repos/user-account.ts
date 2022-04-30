@@ -1,5 +1,5 @@
 import { getRepository } from 'typeorm'
-import { LoadUserAccountRepository, SaveUserAccountByFacebookRepository } from '@/data/contracts/repos'
+import { LoadUserAccountRepository, SaveUserAccountByFacebookRepository } from '@/domain/contracts/repos'
 import { PgUser } from '@/infra/postgres/entities'
 
 // Criando tipos internos para diminuir o código digitado nos tipos devido ao namespace
