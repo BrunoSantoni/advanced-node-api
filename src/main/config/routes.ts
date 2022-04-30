@@ -12,5 +12,5 @@ export const setupRoutes = (app: Express): void => {
       route(router)
     })
 
-  app.use(router)
+  app.use('/api', router)
 }
