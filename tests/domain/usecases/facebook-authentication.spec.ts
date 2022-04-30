@@ -1,11 +1,11 @@
 import { LoadFacebookUserApi } from '@/domain/contracts/apis'
 import { LoadUserAccountRepository, SaveUserAccountByFacebookRepository } from '@/domain/contracts/repos'
 import { TokenGenerator } from '@/domain/contracts/crypto'
-import { FacebookAuthenticationService } from '@/domain/services'
-import { AuthenticationError } from '@/domain/errors'
-import { AccessToken, FacebookAccount } from '@/domain/models'
+import { FacebookAuthenticationUseCase } from '@/domain/usecases'
+import { AuthenticationError } from '@/domain/entities/errors'
+import { AccessToken, FacebookAccount } from '@/domain/entities'
 
-jest.mock('@/domain/models/facebook-account')
+jest.mock('@/domain/entities/facebook-account')
 
 const fakeUserAccount = ({
   name: 'any_fb_name',
@@ -13,11 +13,11 @@ const fakeUserAccount = ({
   facebookId: 'any_fb_id'
 })
 
-describe('FacebookAuthenticationService', () => {
+describe('FacebookAuthenticationUseCase', () => {
   let crypto: TokenGenerator
   let facebookApi: LoadFacebookUserApi
   let userAccountRepo: LoadUserAccountRepository & SaveUserAccountByFacebookRepository
-  let sut: FacebookAuthenticationService
+  let sut: FacebookAuthenticationUseCase
   let token: string
 
   beforeAll(() => {
@@ -40,7 +40,7 @@ describe('FacebookAuthenticationService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
 
-    sut = new FacebookAuthenticationService(
+    sut = new FacebookAuthenticationUseCase(
       crypto,
       facebookApi,
       userAccountRepo

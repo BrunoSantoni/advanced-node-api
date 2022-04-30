@@ -1,4 +1,4 @@
-import { FacebookAccount } from '@/domain/models'
+import { FacebookAccount } from '@/domain/entities'
 
 const makeFakeFbData = (): { name: string, email: string, facebookId: string } => ({
   name: 'any_fb_name',
