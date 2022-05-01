@@ -21,15 +21,13 @@ export class FacebookLoginController extends BaseController {
   }
 
   async perform ({ token }: HttpRequest): Promise<HttpResponse<Model>> {
-    const accessToken = await this.facebookAuth({ token })
+    try {
+      const { accessToken } = await this.facebookAuth({ token })
 
-    if (accessToken instanceof Error) {
+      return success({ accessToken })
+    } catch {
       return unauthorized()
     }
-
-    return success({
-      accessToken: accessToken.value
-    })
   }
 
   override buildValidators ({ token }: HttpRequest): Validator[] {

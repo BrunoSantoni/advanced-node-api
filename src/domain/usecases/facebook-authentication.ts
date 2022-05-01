@@ -4,7 +4,7 @@ import { TokenGenerator } from '@/domain/contracts/crypto'
 import { AuthenticationError } from '@/domain/entities/errors'
 import { AccessToken, FacebookAccount } from '@/domain/entities'
 
-export type FacebookAuthentication = (params: { token: string }) => Promise<AccessToken | AuthenticationError>
+export type FacebookAuthentication = (params: { token: string }) => Promise<{ accessToken: string }>
 
 type Setup = (
   crypto: TokenGenerator,
@@ -18,7 +18,7 @@ export const setupFacebookAuthentication: Setup = (crypto, facebookApi, userAcco
   })
 
   if (fbData === undefined) {
-    return new AuthenticationError()
+    throw new AuthenticationError()
   }
 
   const accountData = await userAccountRepo.load({ email: fbData?.email })
@@ -31,5 +31,7 @@ export const setupFacebookAuthentication: Setup = (crypto, facebookApi, userAcco
     expirationInMinutes: AccessToken.expirationInMinutes
   })
 
-  return new AccessToken(generatedToken)
+  return {
+    accessToken: generatedToken
+  }
 }

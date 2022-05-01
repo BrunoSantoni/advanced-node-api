@@ -1,7 +1,7 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express'
 import { getMockReq, getMockRes } from '@jest-mock/express'
 import { BaseController } from '@/application/controllers'
-import { adaptExpressRoute } from '@/infra/http'
+import { adaptExpressRoute } from '@/main/adapters'
 
 class ControllerSpy extends BaseController {
   result = {
