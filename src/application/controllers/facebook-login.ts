@@ -1,7 +1,7 @@
-import { FacebookAuthentication } from '@/domain/features'
 import { HttpResponse, unauthorized, success } from '@/application/helpers'
 import { ValidationBuilder, Validator } from '@/application/validations'
 import { BaseController } from '@/application/controllers'
+import { FacebookAuthentication } from '@/domain/usecases'
 
 type HttpRequest = {
   // O token pode ser null ou undefined, mas se colocarmos no tipo aqui, o compilador vai reclamar lá embaixo
@@ -21,7 +21,7 @@ export class FacebookLoginController extends BaseController {
   }
 
   async perform ({ token }: HttpRequest): Promise<HttpResponse<Model>> {
-    const accessToken = await this.facebookAuth.perform({ token })
+    const accessToken = await this.facebookAuth({ token })
 
     if (accessToken instanceof Error) {
       return unauthorized()

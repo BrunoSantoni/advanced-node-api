@@ -1,7 +1,7 @@
 import { LoadFacebookUserApi } from '@/domain/contracts/apis'
 import { LoadUserAccountRepository, SaveUserAccountByFacebookRepository } from '@/domain/contracts/repos'
 import { TokenGenerator } from '@/domain/contracts/crypto'
-import { FacebookAuthenticationUseCase } from '@/domain/usecases'
+import { setupFacebookAuthentication, FacebookAuthentication } from '@/domain/usecases'
 import { AuthenticationError } from '@/domain/entities/errors'
 import { AccessToken, FacebookAccount } from '@/domain/entities'
 
@@ -13,11 +13,11 @@ const fakeUserAccount = ({
   facebookId: 'any_fb_id'
 })
 
-describe('FacebookAuthenticationUseCase', () => {
+describe('FacebookAuthentication', () => {
   let crypto: TokenGenerator
   let facebookApi: LoadFacebookUserApi
   let userAccountRepo: LoadUserAccountRepository & SaveUserAccountByFacebookRepository
-  let sut: FacebookAuthenticationUseCase
+  let sut: FacebookAuthentication
   let token: string
 
   beforeAll(() => {
@@ -40,7 +40,7 @@ describe('FacebookAuthenticationUseCase', () => {
   beforeEach(() => {
     jest.clearAllMocks()
 
-    sut = new FacebookAuthenticationUseCase(
+    sut = setupFacebookAuthentication(
       crypto,
       facebookApi,
       userAccountRepo
@@ -48,7 +48,7 @@ describe('FacebookAuthenticationUseCase', () => {
   })
 
   it('should call LoadFacebookUserApi with correct params', async () => {
-    await sut.perform({ token })
+    await sut({ token })
 
     expect(facebookApi.loadUser).toHaveBeenCalledWith({ token })
     expect(facebookApi.loadUser).toHaveBeenCalledTimes(1)
@@ -58,13 +58,13 @@ describe('FacebookAuthenticationUseCase', () => {
     const loadUserSpy = jest.spyOn(facebookApi, 'loadUser')
     loadUserSpy.mockResolvedValueOnce(undefined)
 
-    const authResult = await sut.perform({ token })
+    const authResult = await sut({ token })
 
     expect(authResult).toEqual(new AuthenticationError())
   })
 
   it('should call LoadUserAccountRepo when LoadFacebookUserApi returns data', async () => {
-    await sut.perform({ token })
+    await sut({ token })
 
     expect(userAccountRepo.load).toHaveBeenCalledWith({ email: 'any_fb_email@mail.com' })
     expect(userAccountRepo.load).toHaveBeenCalledTimes(1)
@@ -77,14 +77,14 @@ describe('FacebookAuthenticationUseCase', () => {
     }))
     jest.mocked(FacebookAccount).mockImplementationOnce(FacebookAccountStub)
 
-    await sut.perform({ token })
+    await sut({ token })
 
     expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledWith(fakeUserAccount)
     expect(userAccountRepo.saveWithFacebook).toHaveBeenCalledTimes(1)
   })
 
   it('should call TokenGenerator with correct params', async () => {
-    await sut.perform({ token })
+    await sut({ token })
 
     expect(crypto.generateToken).toHaveBeenCalledWith({
       key: 'any_account_id',
@@ -94,7 +94,7 @@ describe('FacebookAuthenticationUseCase', () => {
   })
 
   it('should return an AccessToken on success', async () => {
-    const authResult = await sut.perform({ token })
+    const authResult = await sut({ token })
 
     expect(authResult).toEqual(new AccessToken('any_generated_token'))
   })
@@ -103,7 +103,7 @@ describe('FacebookAuthenticationUseCase', () => {
     const generateTokenSpy = jest.spyOn(crypto, 'generateToken')
     generateTokenSpy.mockRejectedValueOnce(new Error('crypto_error'))
 
-    const promise = sut.perform({ token })
+    const promise = sut({ token })
 
     await expect(promise).rejects.toThrow(new Error('crypto_error'))
   })
@@ -112,7 +112,7 @@ describe('FacebookAuthenticationUseCase', () => {
     const loadUserSpy = jest.spyOn(facebookApi, 'loadUser')
     loadUserSpy.mockRejectedValueOnce(new Error('fb_error'))
 
-    const promise = sut.perform({ token })
+    const promise = sut({ token })
 
     await expect(promise).rejects.toThrow(new Error('fb_error'))
   })
@@ -121,7 +121,7 @@ describe('FacebookAuthenticationUseCase', () => {
     const loadSpy = jest.spyOn(userAccountRepo, 'load')
     loadSpy.mockRejectedValueOnce(new Error('load_error'))
 
-    const promise = sut.perform({ token })
+    const promise = sut({ token })
 
     await expect(promise).rejects.toThrow(new Error('load_error'))
   })
@@ -130,7 +130,7 @@ describe('FacebookAuthenticationUseCase', () => {
     const saveWithFacebookSpy = jest.spyOn(userAccountRepo, 'saveWithFacebook')
     saveWithFacebookSpy.mockRejectedValueOnce(new Error('save_error'))
 
-    const promise = sut.perform({ token })
+    const promise = sut({ token })
 
     await expect(promise).rejects.toThrow(new Error('save_error'))
   })
