@@ -1,17 +1,21 @@
 export namespace TokenValidator {
   export type Params = { token: string }
+  export type Result = string
 }
 
 export interface TokenValidator {
-  validateToken: (params: TokenValidator.Params) => Promise<void>
+  validateToken: (params: TokenValidator.Params) => Promise<TokenValidator.Result>
 }
 
 type Input = { token: string }
-export type Authorize = (params: Input) => Promise<void>
+type Output = string
+export type Authorize = (params: Input) => Promise<Output>
 type Setup = (crypto: TokenValidator) => Authorize
 
 const setupAuthorize: Setup = (crypto) => async ({ token }) => {
-  await crypto.validateToken({ token })
+  const key = await crypto.validateToken({ token })
+
+  return key // Key will be userId
 }
 
 describe('Authorize', () => {
@@ -22,7 +26,7 @@ describe('Authorize', () => {
   beforeAll(() => {
     token = 'any_token'
     crypto = {
-      validateToken: jest.fn(async () => Promise.resolve())
+      validateToken: jest.fn(async () => Promise.resolve('any_value'))
     }
   })
 
@@ -35,5 +39,11 @@ describe('Authorize', () => {
 
     expect(crypto.validateToken).toHaveBeenCalledWith({ token })
     expect(crypto.validateToken).toHaveBeenCalledTimes(1)
+  })
+
+  it('should return the correct accessToken', async () => {
+    const userId = await sut({ token })
+
+    expect(userId).toBe('any_value')
   })
 })
