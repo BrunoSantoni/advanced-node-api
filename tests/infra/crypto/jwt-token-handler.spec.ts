@@ -26,11 +26,11 @@ describe('JwtTokenHandler', () => {
     let token: string
 
     beforeAll(() => {
-      fakeJwt.sign.mockImplementation(() => token)
-
       key = 'any_key'
       token = 'any_token'
       expirationInMinutes = 1
+
+      fakeJwt.sign.mockImplementation(() => token)
     })
 
     it('should call sign with correct params', async () => {
@@ -63,6 +63,21 @@ describe('JwtTokenHandler', () => {
       })
 
       await expect(promise).rejects.toThrow(new Error('token_error'))
+    })
+  })
+
+  describe('validateToken', () => {
+    let token: string
+
+    beforeAll(() => {
+      token = 'any_token'
+    })
+
+    it('should call sign with correct params', async () => {
+      await sut.validateToken({ token })
+
+      expect(fakeJwt.verify).toHaveBeenCalledWith(token, secret)
+      expect(fakeJwt.verify).toHaveBeenCalledTimes(1)
     })
   })
 })
