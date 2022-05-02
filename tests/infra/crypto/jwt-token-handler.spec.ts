@@ -10,7 +10,6 @@ describe('JwtTokenHandler', () => {
 
   beforeAll(() => {
     fakeJwt = jwt as jest.Mocked<typeof jwt>
-    fakeJwt.sign.mockImplementation(() => 'any_token')
 
     secret = 'any_secret'
   })
@@ -21,35 +20,49 @@ describe('JwtTokenHandler', () => {
     sut = new JwtTokenHandler(secret)
   })
 
-  it('should call sign with correct params', async () => {
-    await sut.generateToken({
-      key: 'any_key',
-      expirationInMinutes: 1
+  describe('generateToken', () => {
+    let key: string
+    let expirationInMinutes: number
+    let token: string
+
+    beforeAll(() => {
+      fakeJwt.sign.mockImplementation(() => token)
+
+      key = 'any_key'
+      token = 'any_token'
+      expirationInMinutes = 1
     })
 
-    expect(fakeJwt.sign).toHaveBeenCalledWith({ key: 'any_key' }, secret, { expiresIn: 60 })
-    expect(fakeJwt.sign).toHaveBeenCalledTimes(1)
-  })
+    it('should call sign with correct params', async () => {
+      await sut.generateToken({
+        key,
+        expirationInMinutes
+      })
 
-  it('should return a token', async () => {
-    const token = await sut.generateToken({
-      key: 'any_key',
-      expirationInMinutes: 1
+      expect(fakeJwt.sign).toHaveBeenCalledWith({ key }, secret, { expiresIn: 60 })
+      expect(fakeJwt.sign).toHaveBeenCalledTimes(1)
     })
 
-    expect(token).toBe('any_token')
-  })
+    it('should return a token', async () => {
+      const generatedToken = await sut.generateToken({
+        key,
+        expirationInMinutes
+      })
 
-  it('should rethrow if sign throws', async () => {
-    fakeJwt.sign.mockImplementationOnce(() => {
-      throw new Error('token_error')
+      expect(generatedToken).toBe(token)
     })
 
-    const promise = sut.generateToken({
-      key: 'any_key',
-      expirationInMinutes: 1
-    })
+    it('should rethrow if sign throws', async () => {
+      fakeJwt.sign.mockImplementationOnce(() => {
+        throw new Error('token_error')
+      })
 
-    await expect(promise).rejects.toThrow(new Error('token_error'))
+      const promise = sut.generateToken({
+        key,
+        expirationInMinutes
+      })
+
+      await expect(promise).rejects.toThrow(new Error('token_error'))
+    })
   })
 })
