@@ -1,22 +1,5 @@
-export namespace TokenValidator {
-  export type Params = { token: string }
-  export type Result = string
-}
-
-export interface TokenValidator {
-  validateToken: (params: TokenValidator.Params) => Promise<TokenValidator.Result>
-}
-
-type Input = { token: string }
-type Output = string
-export type Authorize = (params: Input) => Promise<Output>
-type Setup = (crypto: TokenValidator) => Authorize
-
-const setupAuthorize: Setup = (crypto) => async ({ token }) => {
-  const key = await crypto.validateToken({ token })
-
-  return key // Key will be userId
-}
+import { Authorize, setupAuthorize } from '@/domain/usecases'
+import { TokenValidator } from '@/domain/contracts/crypto'
 
 describe('Authorize', () => {
   let crypto: TokenValidator
