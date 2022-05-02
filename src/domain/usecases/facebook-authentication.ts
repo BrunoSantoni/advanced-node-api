@@ -4,7 +4,10 @@ import { TokenGenerator } from '@/domain/contracts/crypto'
 import { AuthenticationError } from '@/domain/entities/errors'
 import { AccessToken, FacebookAccount } from '@/domain/entities'
 
-export type FacebookAuthentication = (params: { token: string }) => Promise<{ accessToken: string }>
+type Input = { token: string }
+type Output = { accessToken: string }
+
+export type FacebookAuthentication = (params: Input) => Promise<Output>
 
 type Setup = (
   crypto: TokenGenerator,
