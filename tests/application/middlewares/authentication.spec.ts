@@ -1,4 +1,4 @@
-import { HttpResponse, forbidden } from '@/application/helpers'
+import { HttpResponse, forbidden, success } from '@/application/helpers'
 import { ForbiddenError } from '@/application/errors'
 import { RequiredStringValidator } from '@/application/validations'
 import { Authorize } from '@/domain/usecases'
@@ -7,18 +7,24 @@ type HttpRequest = {
   authorization: string
 }
 
+type Model = Error | {
+  userId: string
+}
+
 class AuthenticationMiddleware {
   constructor (
     private readonly authorize: Authorize
   ) {}
 
-  async handle ({ authorization }: HttpRequest): Promise<HttpResponse<Error> | undefined> {
+  async handle ({ authorization }: HttpRequest): Promise<HttpResponse<Model>> {
     const error = new RequiredStringValidator(authorization, 'authorization').validate()
 
     if (error !== undefined) return forbidden()
 
     try {
-      await this.authorize({ token: authorization })
+      const userId = await this.authorize({ token: authorization })
+
+      return success({ userId })
     } catch {
       return forbidden()
     }
@@ -31,7 +37,7 @@ describe('AuthenticationMiddleware', () => {
   let authorization: string
 
   beforeAll(() => {
-    authorize = jest.fn()
+    authorize = jest.fn().mockResolvedValue('any_user_id')
     authorization = 'any_authorization'
   })
 
@@ -81,6 +87,17 @@ describe('AuthenticationMiddleware', () => {
     expect(httpResponse).toEqual({
       statusCode: 403,
       data: new ForbiddenError()
+    })
+  })
+
+  it('should return 200 with userId on success', async () => {
+    const httpResponse = await sut.handle({ authorization })
+
+    expect(httpResponse).toEqual({
+      statusCode: 200,
+      data: {
+        userId: 'any_user_id'
+      }
     })
   })
 })
