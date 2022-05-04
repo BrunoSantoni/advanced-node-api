@@ -10,7 +10,16 @@ const adaptExpressMiddleware: Adapter = (middleware) => {
       ...req.headers
     })
 
-    res.status(statusCode).json(data)
+    if (statusCode === 200) {
+      // Object.Entries retorna um array com a key e o value do objeto
+      // entry[0] = ['prop', undefined]
+      const entries = Object.entries(data).filter(entry => entry[1])
+
+      req.locals = { ...req.locals, ...Object.fromEntries(entries) }
+      next()
+    } else {
+      res.status(statusCode).json(data)
+    }
   }
 }
 
@@ -27,7 +36,15 @@ describe('ExpressMiddleware', () => {
 
   beforeAll(() => {
     middleware = {
-      handle: jest.fn(async () => Promise.resolve({ statusCode: 200, data: { any: 'response' } }))
+      handle: jest.fn(async () => Promise.resolve({
+        statusCode: 200,
+        data: {
+          emptyProp: '',
+          nullProp: null,
+          undefinedProp: undefined,
+          prop: 'any_value'
+        }
+      }))
     }
     req = getMockReq({
       headers: {
@@ -72,5 +89,12 @@ describe('ExpressMiddleware', () => {
     expect(res.status).toHaveBeenCalledTimes(1)
     expect(res.json).toHaveBeenCalledWith({ error: 'any_error' })
     expect(res.json).toHaveBeenCalledTimes(1)
+  })
+
+  it('should add valid data to req.locals', async () => {
+    await sut(req, res, next)
+
+    expect(req.locals).toEqual({ prop: 'any_value' })
+    expect(next).toHaveBeenCalledTimes(1)
   })
 })
