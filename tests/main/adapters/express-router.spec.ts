@@ -24,7 +24,7 @@ describe('ExpressRouter', () => {
   let res: Response
   let next: NextFunction
 
-  beforeEach(() => {
+  beforeAll(() => {
     req = getMockReq({
       body: {
         any: 'value'
@@ -32,6 +32,10 @@ describe('ExpressRouter', () => {
     })
     res = getMockRes().res
     next = getMockRes().next
+  })
+
+  beforeEach(() => {
+    jest.clearAllMocks()
 
     controller = new ControllerSpy()
     sut = adaptExpressRoute(controller)
