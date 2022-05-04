@@ -56,7 +56,7 @@ describe('ExpressMiddleware', () => {
   it('should return correct error and statusCode', async () => {
     jest.spyOn(middleware, 'handle').mockResolvedValueOnce({
       statusCode: 500,
-      data: { error: 'any_error' }
+      data: new Error('any_error')
     })
 
     await sut(req, res, next)
