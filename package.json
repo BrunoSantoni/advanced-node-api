@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/main/server.js",
+    "start": "node -r dotenv/config dist/main/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only -r dotenv/config --inspect=0.0.0.0:9229 src/main/server.ts",
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "lint": "eslint",
     "lint:fix": "npm run lint -- --fix",
@@ -39,6 +40,7 @@
     "pg-mem": "^2.3.5",
     "supertest": "^6.2.3",
     "ts-jest": "^27.1.4",
+    "ts-node-dev": "^1.1.8",
     "typescript": "^4.6.3"
   },
   "engines": {
