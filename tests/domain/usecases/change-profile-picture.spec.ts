@@ -23,25 +23,37 @@ interface IDGenerator {
 }
 
 describe('ChangeProfilePicture', () => {
-  it('should call UploadFile with correct input', async () => {
-    const uuid = 'any_unique_id'
-    const file = Buffer.from('any_buffer')
-    const fileStorage: UploadFile = {
+  let fakeUuid: string
+  let fakeFile: Buffer
+  let fileStorage: UploadFile
+  let idGenerator: IDGenerator
+  let sut: ChangeProfilePicture
+
+  beforeAll(() => {
+    fakeUuid = 'any_unique_id'
+    fakeFile = Buffer.from('any_buffer')
+    fileStorage = {
       upload: jest.fn(async () => await Promise.resolve())
     }
-    const idGenerator: IDGenerator = {
+    idGenerator = {
       uuid: jest.fn(() => 'any_unique_id')
     }
-    const sut = setupChangeProfilePicture(fileStorage, idGenerator)
+  })
 
+  beforeEach(() => {
+    jest.clearAllMocks()
+    sut = setupChangeProfilePicture(fileStorage, idGenerator)
+  })
+
+  it('should call UploadFile with correct input', async () => {
     await sut({
       userId: 'any_id',
-      file
+      file: fakeFile
     })
 
     expect(fileStorage.upload).toHaveBeenCalledWith({
-      file,
-      key: uuid
+      file: fakeFile,
+      key: fakeUuid
     })
     expect(fileStorage.upload).toHaveBeenCalledTimes(1)
   })
