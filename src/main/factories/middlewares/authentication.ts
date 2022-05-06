@@ -1,13 +1,13 @@
 import { AuthenticationMiddleware } from '@/application/middlewares'
-import { makeJwtTokenHandler } from '@/main/factories/crypto'
+import { makeJwtTokenHandler } from '@/main/factories/gateways'
 
 export const makeAuthenticationMiddleware = (): AuthenticationMiddleware => {
   // Infra
-  const crypto = makeJwtTokenHandler()
+  const tokenHandler = makeJwtTokenHandler()
 
   // Presentation
 
-  // Se passar o crypto.validateToken sem o bind, ele vai ter a referência da função, mas não vai
+  // Se passar o tokenHandler.validate sem o bind, ele vai ter a referência da função, mas não vai
   // ter a referência das variáveis da classe, fazendo o código quebrar (Aula 58 4m)
-  return new AuthenticationMiddleware(crypto.validateToken.bind(crypto))
+  return new AuthenticationMiddleware(tokenHandler.validate.bind(tokenHandler))
 }

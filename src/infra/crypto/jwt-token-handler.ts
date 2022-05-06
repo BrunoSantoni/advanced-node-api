@@ -1,12 +1,12 @@
 import { sign, verify, JwtPayload } from 'jsonwebtoken'
-import { TokenGenerator, TokenValidator } from '@/domain/contracts/crypto'
+import { TokenGenerator, TokenValidator } from '@/domain/contracts/gateways'
 
 export class JwtTokenHandler implements TokenGenerator, TokenValidator {
   constructor (
     private readonly secret: string
   ) {}
 
-  async generateToken ({ expirationInMinutes, key }: TokenGenerator.Params): Promise<TokenGenerator.Result> {
+  async generate ({ expirationInMinutes, key }: TokenGenerator.Params): Promise<TokenGenerator.Result> {
     const expirationInSeconds = expirationInMinutes * 60
 
     const token = sign({ key }, this.secret, {
@@ -16,7 +16,7 @@ export class JwtTokenHandler implements TokenGenerator, TokenValidator {
     return token
   }
 
-  async validateToken ({ token }: TokenValidator.Params): Promise<TokenValidator.Result> {
+  async validate ({ token }: TokenValidator.Params): Promise<TokenValidator.Result> {
     const payload = verify(token, this.secret) as JwtPayload
 
     return payload.key
