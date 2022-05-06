@@ -11,6 +11,7 @@ type Setup = (
 
 export const setupChangeProfilePicture: Setup = (fileStorage, idGenerator, userProfileRepo) => async ({ userId, file }) => {
   if (file === undefined) {
+    await userProfileRepo.savePicture({ pictureUrl: undefined })
     return
   }
 
