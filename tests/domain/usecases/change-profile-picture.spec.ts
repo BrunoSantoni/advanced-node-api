@@ -1,26 +1,5 @@
-type Input = { userId: string, file: Buffer }
-type ChangeProfilePicture = (input: Input) => Promise<void>
-type Setup = (fileStorage: UploadFile, idGenerator: IDGenerator) => ChangeProfilePicture
-
-const setupChangeProfilePicture: Setup = (fileStorage, idGenerator) => async ({ userId, file }) => {
-  const uniqueId = idGenerator.uuid({ key: userId })
-  await fileStorage.upload({ file, key: uniqueId })
-}
-
-export namespace UploadFile {
-  export type Input = { file: Buffer, key: string }
-}
-interface UploadFile {
-  upload: (input: UploadFile.Input) => Promise<void>
-}
-
-export namespace IDGenerator {
-  export type Input = { key: string }
-  export type Output = string
-}
-interface IDGenerator {
-  uuid: (input: IDGenerator.Input) => IDGenerator.Output
-}
+import { UploadFile, IDGenerator } from '@/domain/contracts/gateways'
+import { ChangeProfilePicture, setupChangeProfilePicture } from '@/domain/usecases'
 
 describe('ChangeProfilePicture', () => {
   let fakeUuid: string
