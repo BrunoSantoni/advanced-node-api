@@ -5,5 +5,15 @@ export namespace SaveUserPictureRepository {
 }
 
 export interface SaveUserPictureRepository {
-  savePicture: (params: SaveUserPictureRepository.Input) => Promise<void>
+  savePicture: (input: SaveUserPictureRepository.Input) => Promise<void>
+}
+
+export namespace LoadUserProfileRepository {
+  export type Input = {
+    userId: string
+  }
+}
+
+export interface LoadUserProfileRepository {
+  loadProfile: (input: LoadUserProfileRepository.Input) => Promise<void>
 }

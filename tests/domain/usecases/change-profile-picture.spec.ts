@@ -1,5 +1,5 @@
 import { UploadFile, IDGenerator } from '@/domain/contracts/gateways'
-import { SaveUserPictureRepository } from '@/domain/contracts/repos'
+import { LoadUserProfileRepository, SaveUserPictureRepository } from '@/domain/contracts/repos'
 import { ChangeProfilePicture, setupChangeProfilePicture } from '@/domain/usecases'
 
 describe('ChangeProfilePicture', () => {
@@ -7,7 +7,7 @@ describe('ChangeProfilePicture', () => {
   let fakeFile: Buffer
   let fileStorage: UploadFile
   let idGenerator: IDGenerator
-  let userProfileRepo: SaveUserPictureRepository
+  let userProfileRepo: SaveUserPictureRepository & LoadUserProfileRepository
   let sut: ChangeProfilePicture
 
   beforeAll(() => {
@@ -20,7 +20,8 @@ describe('ChangeProfilePicture', () => {
       uuid: jest.fn(() => 'any_unique_id')
     }
     userProfileRepo = {
-      savePicture: jest.fn(async () => await Promise.resolve())
+      savePicture: jest.fn(async () => await Promise.resolve()),
+      loadProfile: jest.fn(async () => await Promise.resolve())
     }
   })
 
@@ -72,5 +73,17 @@ describe('ChangeProfilePicture', () => {
 
     expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: undefined })
     expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call LoadUserProfileRepository with correct input', async () => {
+    await sut({
+      userId: 'any_id',
+      file: undefined
+    })
+
+    expect(userProfileRepo.loadProfile).toHaveBeenCalledWith({
+      userId: 'any_id'
+    })
+    expect(userProfileRepo.loadProfile).toHaveBeenCalledTimes(1)
   })
 })
