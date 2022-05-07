@@ -1,6 +1,7 @@
 export namespace SaveUserPictureRepository {
   export type Input = {
     pictureUrl?: string
+    initials?: string
   }
 }
 
@@ -12,8 +13,11 @@ export namespace LoadUserProfileRepository {
   export type Input = {
     userId: string
   }
+  export type Output = {
+    name?: string
+  }
 }
 
 export interface LoadUserProfileRepository {
-  loadProfile: (input: LoadUserProfileRepository.Input) => Promise<void>
+  loadProfile: (input: LoadUserProfileRepository.Input) => Promise<LoadUserProfileRepository.Output>
 }

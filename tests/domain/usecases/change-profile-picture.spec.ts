@@ -21,7 +21,9 @@ describe('ChangeProfilePicture', () => {
     }
     userProfileRepo = {
       savePicture: jest.fn(async () => await Promise.resolve()),
-      loadProfile: jest.fn(async () => await Promise.resolve())
+      loadProfile: jest.fn(async () => await Promise.resolve({
+        name: 'John Middle Doe'
+      }))
     }
   })
 
@@ -58,10 +60,7 @@ describe('ChangeProfilePicture', () => {
       file: fakeFile
     })
 
-    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({
-      pictureUrl: 'any_url',
-      initials: undefined
-    })
+    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: 'any_url', initials: undefined })
     expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
   })
 
@@ -71,7 +70,59 @@ describe('ChangeProfilePicture', () => {
       file: undefined
     })
 
-    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: undefined })
+    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: undefined, initials: 'JD' })
+    expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call SaveUserPictureRepository with uppercased initials when file is undefined', async () => {
+    jest.spyOn(userProfileRepo, 'loadProfile')
+      .mockResolvedValueOnce({ name: 'john lowercased doe' })
+
+    await sut({
+      userId: 'any_id',
+      file: undefined
+    })
+
+    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: undefined, initials: 'JD' })
+    expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call SaveUserPictureRepository with first two letters of the name when file is undefined and user only have one name', async () => {
+    jest.spyOn(userProfileRepo, 'loadProfile')
+      .mockResolvedValueOnce({ name: 'john' })
+
+    await sut({
+      userId: 'any_id',
+      file: undefined
+    })
+
+    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: undefined, initials: 'JO' })
+    expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call SaveUserPictureRepository with first letter of the name when file is undefined and user only have one letter in name field', async () => {
+    jest.spyOn(userProfileRepo, 'loadProfile')
+      .mockResolvedValueOnce({ name: 'j' })
+
+    await sut({
+      userId: 'any_id',
+      file: undefined
+    })
+
+    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: undefined, initials: 'J' })
+    expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call SaveUserPictureRepository with undefined initials when file is undefined and name is undefined', async () => {
+    jest.spyOn(userProfileRepo, 'loadProfile')
+      .mockResolvedValueOnce({ name: undefined })
+
+    await sut({
+      userId: 'any_id',
+      file: undefined
+    })
+
+    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: undefined, initials: undefined })
     expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
   })
 
