@@ -57,7 +57,10 @@ describe('ChangeProfilePicture', () => {
       file: fakeFile
     })
 
-    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({ pictureUrl: 'any_url' })
+    expect(userProfileRepo.savePicture).toHaveBeenCalledWith({
+      pictureUrl: 'any_url',
+      initials: undefined
+    })
     expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
   })
 
