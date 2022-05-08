@@ -1,5 +1,6 @@
 export namespace SaveUserPictureRepository {
   export type Input = {
+    id: string
     pictureUrl?: string
     initials?: string
   }
