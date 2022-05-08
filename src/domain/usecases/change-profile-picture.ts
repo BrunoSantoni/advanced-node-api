@@ -1,4 +1,4 @@
-import { UploadFile, IDGenerator } from '@/domain/contracts/gateways'
+import { UploadFile, IDGenerator, DeleteFile } from '@/domain/contracts/gateways'
 import { LoadUserProfileRepository, SaveUserPictureRepository } from '@/domain/contracts/repos'
 import { UserProfile } from '@/domain/entities'
 
@@ -6,7 +6,7 @@ type Input = { userId: string, file?: Buffer }
 type Output = { pictureUrl?: string, initials?: string }
 export type ChangeProfilePicture = (input: Input) => Promise<Output>
 type Setup = (
-  fileStorage: UploadFile,
+  fileStorage: UploadFile & DeleteFile,
   idGenerator: IDGenerator,
   userProfileRepo: SaveUserPictureRepository & LoadUserProfileRepository
 ) => ChangeProfilePicture
@@ -21,7 +21,12 @@ export const setupChangeProfilePicture: Setup = (fileStorage, idGenerator, userP
   const userProfile = new UserProfile(userId)
   userProfile.setPicture(data)
 
-  await userProfileRepo.savePicture(userProfile)
+  try {
+    await userProfileRepo.savePicture(userProfile)
+  } catch {
+    await fileStorage.delete({ key: uniqueId })
+  }
+
   return {
     pictureUrl: userProfile.pictureUrl,
     initials: userProfile.initials

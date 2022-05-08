@@ -1,4 +1,4 @@
-import { UploadFile, IDGenerator } from '@/domain/contracts/gateways'
+import { UploadFile, IDGenerator, DeleteFile } from '@/domain/contracts/gateways'
 import { LoadUserProfileRepository, SaveUserPictureRepository } from '@/domain/contracts/repos'
 import { ChangeProfilePicture, setupChangeProfilePicture } from '@/domain/usecases'
 import { UserProfile } from '@/domain/entities'
@@ -8,7 +8,7 @@ jest.mock('@/domain/entities/user-profile')
 describe('ChangeProfilePicture', () => {
   let fakeUuid: string
   let fakeFile: Buffer
-  let fileStorage: UploadFile
+  let fileStorage: UploadFile & DeleteFile
   let idGenerator: IDGenerator
   let userProfileRepo: SaveUserPictureRepository & LoadUserProfileRepository
   let sut: ChangeProfilePicture
@@ -17,7 +17,8 @@ describe('ChangeProfilePicture', () => {
     fakeUuid = 'any_unique_id'
     fakeFile = Buffer.from('any_buffer')
     fileStorage = {
-      upload: jest.fn(async () => await Promise.resolve('any_url'))
+      upload: jest.fn(async () => await Promise.resolve('any_url')),
+      delete: jest.fn(async () => await Promise.resolve())
     }
     idGenerator = {
       uuid: jest.fn(() => 'any_unique_id')
@@ -107,6 +108,22 @@ describe('ChangeProfilePicture', () => {
     expect(result).toEqual({
       pictureUrl: 'any_url',
       initials: 'any_initials'
+    })
+  })
+
+  it('should call DeleteFile when file exists and SaveUserPictureRepository throws', async () => {
+    jest.spyOn(userProfileRepo, 'savePicture').mockRejectedValueOnce(new Error('any_error'))
+
+    const promise = sut({
+      userId: 'any_id',
+      file: fakeFile
+    })
+
+    promise.catch(() => {
+      expect(fileStorage.delete).toHaveBeenCalledWith({
+        key: fakeUuid
+      })
+      expect(fileStorage.delete).toHaveBeenCalledTimes(1)
     })
   })
 })
