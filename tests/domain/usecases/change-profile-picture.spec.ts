@@ -87,4 +87,26 @@ describe('ChangeProfilePicture', () => {
 
     expect(userProfileRepo.loadProfile).not.toHaveBeenCalled()
   })
+
+  it('should return correct data on success', async () => {
+    jest.mocked(UserProfile).mockImplementationOnce(id => ({
+      setPicture: jest.fn(),
+      id: 'any_id',
+      pictureUrl: 'any_url',
+      initials: 'any_initials'
+    }))
+
+    const result = await sut({
+      userId: 'any_id',
+      file: fakeFile
+    })
+
+    // Embora no código não teremos nenhum caso que retorne tanto pictureUrl quanto initials,
+    // O teste é para garantir que o retorno é o mesmo que o UserProfile, e não quais campos,
+    // Essa validação de retornar um ou outro cabe aos testes unitários do UserProfile.
+    expect(result).toEqual({
+      pictureUrl: 'any_url',
+      initials: 'any_initials'
+    })
+  })
 })
