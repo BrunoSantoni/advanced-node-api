@@ -15,7 +15,7 @@ export const setupChangeProfilePicture: Setup = (fileStorage, idGenerator, userP
   const uniqueId = idGenerator.uuid({ key: userId })
   const data = {
     pictureUrl: file !== undefined ? await fileStorage.upload({ file, key: uniqueId }) : undefined,
-    name: file === undefined ? (await userProfileRepo.loadProfile({ userId })).name : undefined
+    name: file === undefined ? (await userProfileRepo.loadProfile({ userId }))?.name : undefined
   }
 
   const userProfile = new UserProfile(userId)

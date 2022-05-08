@@ -68,6 +68,17 @@ describe('ChangeProfilePicture', () => {
     expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
   })
 
+  it('should call SaveUserPictureRepository even when loadProfile returns undefined', async () => {
+    jest.spyOn(userProfileRepo, 'loadProfile').mockResolvedValueOnce(undefined)
+    await sut({
+      userId: 'any_id',
+      file: fakeFile
+    })
+
+    expect(userProfileRepo.savePicture).toHaveBeenCalledWith(...jest.mocked(UserProfile).mock.instances)
+    expect(userProfileRepo.savePicture).toHaveBeenCalledTimes(1)
+  })
+
   it('should call LoadUserProfileRepository with correct input', async () => {
     await sut({
       userId: 'any_id',
