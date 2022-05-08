@@ -113,6 +113,7 @@ describe('ChangeProfilePicture', () => {
 
   it('should call DeleteFile when file exists and SaveUserPictureRepository throws', async () => {
     jest.spyOn(userProfileRepo, 'savePicture').mockRejectedValueOnce(new Error('any_error'))
+    expect.assertions(2) // Tem que ter 2 expects no final
 
     const promise = sut({
       userId: 'any_id',
@@ -124,6 +125,20 @@ describe('ChangeProfilePicture', () => {
         key: fakeUuid
       })
       expect(fileStorage.delete).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('should not call DeleteFile when file does not exists and SaveUserPictureRepository throws', async () => {
+    jest.spyOn(userProfileRepo, 'savePicture').mockRejectedValueOnce(new Error('any_error'))
+    expect.assertions(1) // Tem que ter 1 expect no final
+
+    const promise = sut({
+      userId: 'any_id',
+      file: undefined
+    })
+
+    promise.catch(() => {
+      expect(fileStorage.delete).not.toHaveBeenCalled()
     })
   })
 })
