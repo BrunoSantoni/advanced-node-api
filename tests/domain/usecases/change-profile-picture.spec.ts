@@ -141,4 +141,16 @@ describe('ChangeProfilePicture', () => {
       expect(fileStorage.delete).not.toHaveBeenCalled()
     })
   })
+
+  it('should rethrow when SaveUserPicture throws', async () => {
+    const error = new Error('save_error')
+    jest.spyOn(userProfileRepo, 'savePicture').mockRejectedValueOnce(new Error('save_error'))
+
+    const promise = sut({
+      userId: 'any_id',
+      file: fakeFile
+    })
+
+    await expect(promise).rejects.toThrow(error)
+  })
 })
