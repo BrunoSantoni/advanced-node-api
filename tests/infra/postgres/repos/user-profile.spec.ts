@@ -47,5 +47,26 @@ describe('PgUserProfileRepository', () => {
         initials: null // O initials vai ser null pq não existe undefined no banco
       })
     })
+
+    it('should update user profile without picture', async () => {
+      const { id } = await pgUserRepo.save({
+        email: 'any@mail.com',
+        initials: 'AI',
+        pictureUrl: 'any_url'
+      })
+
+      await sut.savePicture({
+        id: String(id),
+        initials: 'JD'
+      })
+
+      const pgUser = await pgUserRepo.findOne({ where: { id } })
+
+      expect(pgUser).toMatchObject({
+        id,
+        pictureUrl: null,
+        initials: 'JD'
+      })
+    })
   })
 })

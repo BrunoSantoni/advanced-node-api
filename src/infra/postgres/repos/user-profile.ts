@@ -10,7 +10,7 @@ SaveUserPictureRepository {
   async savePicture ({ id, pictureUrl, initials }: SavePictureInput): Promise<void> {
     const pgUserRepo = getRepository(PgUser)
     await pgUserRepo.update({ id: Number(id) }, {
-      pictureUrl,
+      pictureUrl: pictureUrl ?? null,
       initials: initials ?? null
     })
   }
