@@ -25,7 +25,7 @@ describe('PgUserAccountRepository', () => {
     await getConnection().close()
   })
 
-  describe('load', () => {
+  describe('load()', () => {
     it('should return an account if email exists', async () => {
       await pgUserRepo.save({
         email: 'existing_email@mail.com'
@@ -49,7 +49,7 @@ describe('PgUserAccountRepository', () => {
     })
   })
 
-  describe('saveWithFacebook', () => {
+  describe('saveWithFacebook()', () => {
     it('should create an account if id is undefined', async () => {
       const { id } = await sut.saveWithFacebook({
         name: 'any_name',
@@ -78,7 +78,7 @@ describe('PgUserAccountRepository', () => {
 
       const pgUser = await pgUserRepo.findOneBy({ id: 1 })
 
-      expect(pgUser).toEqual({
+      expect(pgUser).toMatchObject({
         id: 1,
         name: 'new_name',
         email: 'old_email@mail.com',
