@@ -69,4 +69,17 @@ describe('PgUserProfileRepository', () => {
       })
     })
   })
+
+  describe('loadProfile()', () => {
+    it('should load user profile', async () => {
+      const { id } = await pgUserRepo.save({
+        name: 'any_name',
+        email: 'any@mail.com'
+      })
+
+      const userProfile = await sut.loadProfile({ userId: String(id) })
+
+      expect(userProfile?.name).toBe('any_name')
+    })
+  })
 })
