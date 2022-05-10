@@ -1,24 +1,5 @@
+import { BaseController, DeleteProfilePictureController } from '@/application/controllers'
 import { ChangeProfilePicture } from '@/domain/usecases'
-import { HttpResponse, noContent } from '@/application/helpers'
-import { BaseController } from '@/application/controllers'
-
-type HttpRequest = { userId: string }
-
-class DeleteProfilePictureController extends BaseController {
-  constructor (
-    private readonly changeProfilePicture: ChangeProfilePicture
-  ) {
-    super()
-  }
-
-  async perform ({ userId }: HttpRequest): Promise<HttpResponse> {
-    await this.changeProfilePicture({
-      userId
-    })
-
-    return noContent()
-  }
-}
 
 describe('DeleteProfilePictureController', () => {
   let sut: DeleteProfilePictureController
