@@ -1,14 +1,17 @@
 import { ChangeProfilePicture } from '@/domain/usecases'
 import { HttpResponse, noContent } from '@/application/helpers'
+import { BaseController } from '@/application/controllers'
 
 type HttpRequest = { userId: string }
 
-class DeleteProfilePictureController {
+class DeleteProfilePictureController extends BaseController {
   constructor (
     private readonly changeProfilePicture: ChangeProfilePicture
-  ) {}
+  ) {
+    super()
+  }
 
-  async handle ({ userId }: HttpRequest): Promise<HttpResponse> {
+  async perform ({ userId }: HttpRequest): Promise<HttpResponse> {
     await this.changeProfilePicture({
       userId
     })
@@ -28,6 +31,10 @@ describe('DeleteProfilePictureController', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     sut = new DeleteProfilePictureController(changeProfilePicture)
+  })
+
+  it('should extend BaseController', () => {
+    expect(sut).toBeInstanceOf(BaseController)
   })
 
   it('should call ChangeProfilePicture with correct input', async () => {
