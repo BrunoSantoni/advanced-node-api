@@ -1,4 +1,4 @@
-import { FacebookLoginController } from '@/application/controllers'
+import { BaseController, FacebookLoginController } from '@/application/controllers'
 import { UnauthorizedError } from '@/application/errors'
 import { RequiredStringValidator } from '@/application/validations'
 
@@ -19,6 +19,10 @@ describe('FacebookLoginController', () => {
     jest.clearAllMocks()
 
     sut = new FacebookLoginController(facebookAuth)
+  })
+
+  it('should extend Controller', () => {
+    expect(sut).toBeInstanceOf(BaseController)
   })
 
   it('should build Validators correctly', () => {
