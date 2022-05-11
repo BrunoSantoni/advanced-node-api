@@ -1,54 +1,5 @@
-import { RequiredFieldError } from '@/application/errors'
-import { badRequest, HttpResponse, success } from '@/application/helpers'
-import { ChangeProfilePicture } from '@/domain/usecases'
-
-type HttpRequest = {
-  file: { buffer: Buffer, mimeType: string }
-  userId: string
-}
-type Model = Error | { initials?: string, pictureUrl?: string }
-
-class InvalidMymeTypeError extends Error {
-  constructor (allowed: string[]) {
-    super(`Unsupported type. Allowed types: ${allowed.join(', ')}`)
-    this.name = 'InvalidMymeTypeError'
-  }
-}
-
-class MaxFileSizeError extends Error {
-  constructor (maxSizeInMb: number) {
-    super(`FIle upload limit is ${maxSizeInMb}MB`)
-    this.name = 'MaxFileSizeError'
-  }
-}
-
-class SaveProfilePictureController {
-  constructor (
-    private readonly changeProfilePicture: ChangeProfilePicture
-  ) {}
-
-  async handle ({ file, userId }: HttpRequest): Promise<HttpResponse<Model>> {
-    if (file === undefined || file === null) {
-      return badRequest(new RequiredFieldError('file'))
-    }
-    if (file.buffer.length === 0) {
-      return badRequest(new RequiredFieldError('file'))
-    }
-    if (file.buffer.length > 5 * 1024 * 1024) {
-      return badRequest(new MaxFileSizeError(5))
-    }
-    if (!['image/png', 'image/jpg', 'image.jpeg'].includes(file.mimeType)) {
-      return badRequest(new InvalidMymeTypeError(['png', 'jpg']))
-    }
-
-    const pictureData = await this.changeProfilePicture({
-      file: file.buffer,
-      userId
-    })
-
-    return success(pictureData)
-  }
-}
+import { InvalidMimeTypeError, MaxFileSizeError, RequiredFieldError } from '@/application/errors'
+import { SaveProfilePictureController, BaseController } from '@/application/controllers'
 
 describe('SaveProfilePictureController', () => {
   let sut: SaveProfilePictureController
@@ -78,6 +29,10 @@ describe('SaveProfilePictureController', () => {
     jest.clearAllMocks()
 
     sut = new SaveProfilePictureController(changeProfilePicture)
+  })
+
+  it('should extend BaseController', () => {
+    expect(sut).toBeInstanceOf(BaseController)
   })
 
   it('should return 400 if file is undefined', async () => {
@@ -128,7 +83,7 @@ describe('SaveProfilePictureController', () => {
 
     expect(httpResponse).toEqual({
       statusCode: 400,
-      data: new InvalidMymeTypeError([
+      data: new InvalidMimeTypeError([
         'png',
         'jpg'
       ])
@@ -146,7 +101,7 @@ describe('SaveProfilePictureController', () => {
 
     expect(httpResponse).not.toEqual({
       statusCode: 400,
-      data: new InvalidMymeTypeError([
+      data: new InvalidMimeTypeError([
         'png',
         'jpg'
       ])

@@ -2,3 +2,4 @@
 export * from './base-controller'
 export * from './delete-profile-picture'
 export * from './facebook-login'
+export * from './save-profile-picture'
