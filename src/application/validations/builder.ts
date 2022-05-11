@@ -1,4 +1,4 @@
-import { RequiredStringValidator, Validator } from '@/application/validations'
+import { RequiredString, Validator } from '@/application/validations'
 
 /* Builder facilita a criação de um objeto complexo. Pode fazer passando os
 parâmetros no construtor ou gerando a instância através de um método estático. */
@@ -14,7 +14,7 @@ export class ValidationBuilder {
   }
 
   required (): ValidationBuilder {
-    this.validators.push(new RequiredStringValidator(this.value, this.fieldName))
+    this.validators.push(new RequiredString(this.value, this.fieldName))
 
     return this
   }
