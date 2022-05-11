@@ -14,15 +14,16 @@ class InvalidMymeTypeError extends Error {
 }
 
 class SaveProfilePictureController {
-  async handle ({ file }: HttpRequest): Promise<HttpResponse<Model>> {
+  async handle ({ file }: HttpRequest): Promise<HttpResponse<Model> | undefined> {
     if (file === undefined || file === null) {
       return badRequest(new RequiredFieldError('file'))
     }
     if (file.buffer.length === 0) {
       return badRequest(new RequiredFieldError('file'))
     }
-
-    return badRequest(new InvalidMymeTypeError(['png', 'jpg']))
+    if (!['image/png', 'image/jpg', 'image.jpeg'].includes(file.mimeType)) {
+      return badRequest(new InvalidMymeTypeError(['png', 'jpg']))
+    }
   }
 }
 
@@ -86,6 +87,23 @@ describe('SaveProfilePictureController', () => {
     })
 
     expect(httpResponse).toEqual({
+      statusCode: 400,
+      data: new InvalidMymeTypeError([
+        'png',
+        'jpg'
+      ])
+    })
+  })
+
+  it('should not return 400 if file type is valid', async () => {
+    const httpResponse = await sut.handle({
+      file: {
+        buffer,
+        mimeType
+      }
+    })
+
+    expect(httpResponse).not.toEqual({
       statusCode: 400,
       data: new InvalidMymeTypeError([
         'png',
