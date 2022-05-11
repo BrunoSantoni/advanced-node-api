@@ -1,6 +1,7 @@
 export * from './allowed-mimetypes'
 export * from './builder'
 export * from './composite'
+export * from './max-file-size'
 export * from './required'
 export * from './required-buffer'
 export * from './required-string'
