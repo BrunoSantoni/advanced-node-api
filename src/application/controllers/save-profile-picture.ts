@@ -1,7 +1,7 @@
 import { HttpResponse, success } from '@/application/helpers'
 import { ChangeProfilePicture } from '@/domain/usecases'
 import { BaseController } from '@/application/controllers'
-import { AllowedMimeTypes, MaxFileSize, Required, RequiredBuffer, Validator } from '@/application/validations'
+import { ValidationBuilder, Validator } from '@/application/validations'
 
 type HttpRequest = {
   file: { buffer: Buffer, mimeType: string }
@@ -26,11 +26,14 @@ export class SaveProfilePictureController extends BaseController {
   }
 
   override buildValidators ({ file }: HttpRequest): Validator[] {
-    return [
-      new Required(file, 'file'),
-      new RequiredBuffer(file.buffer, 'file'),
-      new AllowedMimeTypes(['png', 'jpg'], file.mimeType),
-      new MaxFileSize(5, file.buffer)
-    ]
+    const validators = ValidationBuilder.of({ value: file, fieldName: 'file' })
+      .required()
+      .image({
+        allowed: ['png', 'jpg'],
+        maxSizeInMb: 5
+      })
+      .build()
+
+    return validators
   }
 }
