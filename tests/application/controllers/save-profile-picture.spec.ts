@@ -50,7 +50,7 @@ describe('SaveProfilePictureController', () => {
     await sut.handle({ file, userId })
 
     expect(changeProfilePicture).toHaveBeenCalledWith({
-      file: file.buffer,
+      file,
       userId
     })
     expect(changeProfilePicture).toHaveBeenCalledTimes(1)

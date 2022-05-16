@@ -6,16 +6,20 @@ import { UserProfile } from '@/domain/entities'
 jest.mock('@/domain/entities/user-profile')
 
 describe('ChangeProfilePicture', () => {
-  let fakeUuid: string
-  let fakeFile: Buffer
+  let uuid: string
+  let buffer: Buffer
+  let mimeType: string
+  let file: { buffer: Buffer, mimeType: string }
   let fileStorage: UploadFile & DeleteFile
   let idGenerator: IDGenerator
   let userProfileRepo: SaveUserPictureRepository & LoadUserProfileRepository
   let sut: ChangeProfilePicture
 
   beforeAll(() => {
-    fakeUuid = 'any_unique_id'
-    fakeFile = Buffer.from('any_buffer')
+    uuid = 'any_unique_id'
+    buffer = Buffer.from('any_buffer')
+    mimeType = 'image/png'
+    file = { buffer, mimeType }
     fileStorage = {
       upload: jest.fn(async () => await Promise.resolve('any_url')),
       delete: jest.fn(async () => await Promise.resolve())
@@ -36,15 +40,34 @@ describe('ChangeProfilePicture', () => {
     sut = setupChangeProfilePicture(fileStorage, idGenerator, userProfileRepo)
   })
 
-  it('should call UploadFile with correct input', async () => {
+  it('should call UploadFile with correct input passing png image', async () => {
     await sut({
       userId: 'any_id',
-      file: fakeFile
+      file: {
+        buffer,
+        mimeType: 'image/png'
+      }
     })
 
     expect(fileStorage.upload).toHaveBeenCalledWith({
-      file: fakeFile,
-      key: fakeUuid
+      file: buffer,
+      fileName: `${uuid}.png`
+    })
+    expect(fileStorage.upload).toHaveBeenCalledTimes(1)
+  })
+
+  it('should call UploadFile with correct input passing jpeg image', async () => {
+    await sut({
+      userId: 'any_id',
+      file: {
+        buffer,
+        mimeType: 'image/jpeg'
+      }
+    })
+
+    expect(fileStorage.upload).toHaveBeenCalledWith({
+      file: buffer,
+      fileName: `${uuid}.jpeg`
     })
     expect(fileStorage.upload).toHaveBeenCalledTimes(1)
   })
@@ -61,7 +84,7 @@ describe('ChangeProfilePicture', () => {
   it('should call SaveUserPictureRepository with correct input', async () => {
     await sut({
       userId: 'any_id',
-      file: fakeFile
+      file
     })
 
     expect(userProfileRepo.savePicture).toHaveBeenCalledWith(...jest.mocked(UserProfile).mock.instances)
@@ -72,7 +95,7 @@ describe('ChangeProfilePicture', () => {
     jest.spyOn(userProfileRepo, 'loadProfile').mockResolvedValueOnce(undefined)
     await sut({
       userId: 'any_id',
-      file: fakeFile
+      file
     })
 
     expect(userProfileRepo.savePicture).toHaveBeenCalledWith(...jest.mocked(UserProfile).mock.instances)
@@ -94,7 +117,7 @@ describe('ChangeProfilePicture', () => {
   it('should not call LoadUserProfileRepository if file exists', async () => {
     await sut({
       userId: 'any_id',
-      file: fakeFile
+      file
     })
 
     expect(userProfileRepo.loadProfile).not.toHaveBeenCalled()
@@ -110,7 +133,7 @@ describe('ChangeProfilePicture', () => {
 
     const result = await sut({
       userId: 'any_id',
-      file: fakeFile
+      file
     })
 
     // Embora no código não teremos nenhum caso que retorne tanto pictureUrl quanto initials,
@@ -128,12 +151,12 @@ describe('ChangeProfilePicture', () => {
 
     const promise = sut({
       userId: 'any_id',
-      file: fakeFile
+      file
     })
 
     promise.catch(() => {
       expect(fileStorage.delete).toHaveBeenCalledWith({
-        key: fakeUuid
+        fileName: uuid
       })
       expect(fileStorage.delete).toHaveBeenCalledTimes(1)
     })
@@ -159,7 +182,7 @@ describe('ChangeProfilePicture', () => {
 
     const promise = sut({
       userId: 'any_id',
-      file: fakeFile
+      file
     })
 
     await expect(promise).rejects.toThrow(error)
