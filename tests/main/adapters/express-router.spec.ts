@@ -27,7 +27,10 @@ describe('ExpressRouter', () => {
   beforeAll(() => {
     req = getMockReq({
       body: {
-        any: 'value'
+        anyBody: 'any_body'
+      },
+      locals: {
+        anyLocals: 'any_locals'
       }
     })
     res = getMockRes().res
@@ -48,7 +51,8 @@ describe('ExpressRouter', () => {
 
     // Por enquanto só se preocupa com o body
     expect(handleSpy).toHaveBeenCalledWith({
-      any: 'value'
+      anyBody: 'any_body',
+      anyLocals: 'any_locals'
     })
     expect(handleSpy).toHaveBeenCalledTimes(1)
   })
@@ -73,6 +77,19 @@ describe('ExpressRouter', () => {
     expect(res.json).toHaveBeenCalledWith({
       any: 'response'
     })
+    expect(res.json).toHaveBeenCalledTimes(1)
+  })
+
+  it('should return with 204 and valid empty data', async () => {
+    jest.spyOn(controller, 'handle').mockResolvedValueOnce({
+      statusCode: 204,
+      data: null
+    })
+    await sut(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(204)
+    expect(res.status).toHaveBeenCalledTimes(1)
+    expect(res.json).toHaveBeenCalledWith(null)
     expect(res.json).toHaveBeenCalledTimes(1)
   })
 

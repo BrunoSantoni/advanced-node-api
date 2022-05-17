@@ -21,7 +21,7 @@ SaveUserPictureRepository {
     const pgUserRepo = getRepository(PgUser)
     const pgUser = await pgUserRepo.findOne({ where: { id: Number(userId) } })
 
-    if (pgUser === null) {
+    if (pgUser === null || pgUser.name === null) {
       return undefined
     }
     return {
